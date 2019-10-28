@@ -29,7 +29,7 @@ def transform(x):
 def inv_transform(x):
     """
     input: 4D tensor
-    outpur: 4D tensor
+    output: 4D tensor
     inverse transform: 
         [orig, hflip, vflip, vflip->hflip]
     """
