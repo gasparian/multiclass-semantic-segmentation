@@ -17,6 +17,7 @@ from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from tqdm import tqdm
+from tensorboardX import SummaryWriter
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -31,6 +32,12 @@ class Meter:
         self.dice_neg_scores = []
         self.dice_pos_scores = []
         self.iou_scores = []
+        self.phase = phase
+        self.epoch = epoch
+
+        # tensorboard log
+        # TODO
+        self.tb_log = SummaryWriter(log_dir=os.path.join(root_result_dir, 'tensorboard'))
 
     def predict(self, X):
         '''X is sigmoid output of the model'''
@@ -96,12 +103,17 @@ class Meter:
         iou = np.nanmean(self.iou_scores)
         return dices, iou
 
-    def epoch_log(self, epoch_loss):
+    def epoch_log(self, epoch_loss, itr):
         '''logging the metrics at the end of an epoch'''
         dices, iou = self.get_metrics()
         dice, dice_neg, dice_pos = dices
         message = "Loss: %0.4f | IoU: %0.4f | dice: %0.4f | dice_neg: %0.4f | dice_pos: %0.4f" % (epoch_loss, iou, dice, dice_neg, dice_pos)
         logging.info(message)
+
+        self.tb_log.add_scalar(f'{self.phase}_dice', dice, itr)
+        self.tb_log.add_scalar(f'{self.phase}_dice_neg', dice_neg, itr)
+        self.tb_log.add_scalar(f'{self.phase}_dice_pos', dice_pos, itr)
+        self.tb_log.add_scalar(f'{self.phase}_iou', iou, itr)
         return dice, iou
 
 class BCEDiceLoss:
@@ -261,7 +273,7 @@ class Trainer(object):
 
     def iterate(self, epoch, phase, data_set):
         """main method for traning: creates metric aggregator, dataloaders and updates the model params"""
-        meter = Meter(phase, epoch, self.base_threshold)
+        meter = Meter(phase, self.base_threshold)
         start = time.strftime("%H:%M:%S")
         logging.info(f"Starting epoch: {epoch} | phase: {phase} | time: {start}")
         self.net.train(phase == "train")
@@ -305,10 +317,12 @@ class Trainer(object):
             outputs = outputs.detach().cpu()
             meter.update(targets, outputs)
             running_loss_tick = (running_loss * self.accumulation_steps) / (itr + 1)
+
+            meter.tb_log.add_scalar(f'{phase}_loss', running_loss_tick, (itr+1)*epoch)
             tk0.set_postfix(loss=(running_loss_tick))
             
         epoch_loss = (running_loss * self.accumulation_steps) / total_batches
-        dice, iou = meter.epoch_log(epoch_loss)
+        dice, iou = meter.epoch_log(epoch_loss, (itr+1)*epoch)
 
         self.losses[phase].append(epoch_loss)
         self.dice_scores[phase].append(dice)
@@ -353,8 +367,9 @@ class Trainer(object):
                 val_loss, val_dice, val_iou = self.iterate(epoch, "val", val_set)
                 key_metrics = {"loss": val_loss, "dice": -1.*val_dice, "iou": -1.*val_iou}
                 self.scheduler.step(val_loss)
-                
-            if key_metrics[self.key_metric] < self.best_metric:
+
+            is_last_epoch = epoch == (self.num_epochs - 1)
+            if key_metrics[self.key_metric] < self.best_metric or is_last_epoch:
                 logging.info("******** Saving state ********")
 
                 if self.multi_gpu_flag:
@@ -372,7 +387,11 @@ class Trainer(object):
                 state["val_dice"] = val_dice
                 state["val_loss"] = val_loss
                 state["best_metric"] = self.best_metric = key_metrics[self.key_metric]
-                torch.save(state, f"{self.model_path}/model.pth")
+
+                ckpt_name = "best_model"
+                if is_last_epoch:
+                    ckpt_name = "last_model"
+                torch.save(state, f"{self.model_path}/{ckpt_name}.pth")
                 
         # save meta-data into the workdir
         self.dump_meta()
