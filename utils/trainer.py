@@ -26,18 +26,17 @@ class Meter:
 
     '''A meter to keep track of iou and dice scores throughout an epoch'''
 
-    def __init__(self, phase, epoch, base_threshold=.5):
+    def __init__(self, root_result_dir="", base_threshold=.5):
         self.base_threshold = base_threshold # threshold
-        self.base_dice_scores = []
-        self.dice_neg_scores = []
-        self.dice_pos_scores = []
-        self.iou_scores = []
-        self.phase = phase
-        self.epoch = epoch
-
-        # tensorboard log
-        # TODO
+        # tensorboard logging
         self.tb_log = SummaryWriter(log_dir=os.path.join(root_result_dir, 'tensorboard'))
+        self.reset_dicts()
+    
+    def reset_dicts(self):
+        self.base_dice_scores = {"train":[], "val":[]}
+        self.dice_neg_scores = {"train":[], "val":[]}
+        self.dice_pos_scores = {"train":[], "val":[]}
+        self.iou_scores = {"train":[], "val":[]}
 
     def predict(self, X):
         '''X is sigmoid output of the model'''
@@ -86,34 +85,35 @@ class Meter:
 
         return iou, dice, neg, dice_pos, num_neg, num_pos
 
-    def update(self, targets, outputs):
+    def update(self, phase, targets, outputs):
         """updates metrics lists every iteration"""
         iou, dice, dice_neg, dice_pos, _, _ = self.metric(outputs, targets)
-        self.base_dice_scores.append(dice)
-        self.dice_pos_scores.append(dice_pos)
-        self.dice_neg_scores.append(dice_neg)
-        self.iou_scores.append(iou)
+        self.base_dice_scores[phase].append(dice)
+        self.dice_pos_scores[phase].append(dice_pos)
+        self.dice_neg_scores[phase].append(dice_neg)
+        self.iou_scores[phase].append(iou)
 
-    def get_metrics(self):
+    def get_metrics(self, phase):
         """averages computed metrics over the epoch"""
-        dice = np.mean(self.base_dice_scores)
-        dice_neg = np.mean(self.dice_neg_scores)
-        dice_pos = np.mean(self.dice_pos_scores)
+        dice = np.mean(self.base_dice_scores[phase])
+        dice_neg = np.mean(self.dice_neg_scores[phase])
+        dice_pos = np.mean(self.dice_pos_scores[phase])
         dices = [dice, dice_neg, dice_pos]
-        iou = np.nanmean(self.iou_scores)
+        iou = np.nanmean(self.iou_scores[phase])
         return dices, iou
 
-    def epoch_log(self, epoch_loss, itr):
+    def epoch_log(self, phase, epoch_loss, itr):
         '''logging the metrics at the end of an epoch'''
-        dices, iou = self.get_metrics()
+        dices, iou = self.get_metrics(phase)
         dice, dice_neg, dice_pos = dices
-        message = "Loss: %0.4f | IoU: %0.4f | dice: %0.4f | dice_neg: %0.4f | dice_pos: %0.4f" % (epoch_loss, iou, dice, dice_neg, dice_pos)
+        message = "Phase: %s | Loss: %0.4f | IoU: %0.4f | dice: %0.4f | dice_neg: %0.4f | dice_pos: %0.4f" \
+            % (phase, epoch_loss, iou, dice, dice_neg, dice_pos)
         logging.info(message)
 
-        self.tb_log.add_scalar(f'{self.phase}_dice', dice, itr)
-        self.tb_log.add_scalar(f'{self.phase}_dice_neg', dice_neg, itr)
-        self.tb_log.add_scalar(f'{self.phase}_dice_pos', dice_pos, itr)
-        self.tb_log.add_scalar(f'{self.phase}_iou', iou, itr)
+        self.tb_log.add_scalar(f'{phase}_dice', dice, itr)
+        self.tb_log.add_scalar(f'{phase}_dice_neg', dice_neg, itr)
+        self.tb_log.add_scalar(f'{phase}_dice_pos', dice_pos, itr)
+        self.tb_log.add_scalar(f'{phase}_iou', iou, itr)
         return dice, iou
 
 class BCEDiceLoss:
@@ -165,10 +165,10 @@ class Trainer(object):
     
     __params = ('num_workers', 'model_path', 'batch_size', 'class_weights', 'accumulation_batches',
                 'lr', 'wd', 'base_threshold', 'scheduler_patience', 'activate',
-                'num_epochs', 'resize', 'freeze_n_iters', 'bce_loss_weight', 'key_metric')
+                'num_epochs', 'freeze_n_iters', 'bce_loss_weight', 'key_metric')
     
-    def __init__(self, model=None, model_path='', dataset_processor=None, resize=None,
-                 reset=True, batch_size=4, freeze_n_iters=20, weights_decay=5e-5,
+    def __init__(self, model=None, model_path='', image_dataset=None, reset=True, 
+                 batch_size=4, freeze_n_iters=20, weights_decay=5e-5,
                  lr=5e-4, num_epochs=20, bce_loss_weight=.9, devices_ids=[0],
                  accumulation_batches=4, key_metric="dice", optimizer=None, 
                  base_threshold=.0, scheduler_patience=3, activate=False,
@@ -218,14 +218,13 @@ class Trainer(object):
         self.scheduler_patience = scheduler_patience
         self.lr = lr
         self.wd = weights_decay
-        self.resize = resize # tuple of new sized, for ex.: (800, 128)
         self.num_epochs = num_epochs
         self.model_path = model_path
         cudnn.benchmark = True
         
         self.accumulation_steps = self.batch_size * self.accumulation_batches
         self.reset = reset
-        self.dataset_processor = dataset_processor
+        self.image_dataset = image_dataset
         self.criterion = BCEDiceLoss(bce_weight=self.bce_loss_weight, class_weights=self.class_weights)
         self.optimizer = optimizer(self.net.parameters(), lr=self.lr)
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode="min", patience=self.scheduler_patience, verbose=True)
@@ -233,6 +232,8 @@ class Trainer(object):
         self.losses = {phase: [] for phase in self.phases}
         self.iou_scores = {phase: [] for phase in self.phases}
         self.dice_scores = {phase: [] for phase in self.phases}
+
+        self.meter = Meter(self.model_path, self.base_threshold)
 
         logging.info(f"Trainer initialized on {len(self.devices_ids)} devices!")
 
@@ -273,14 +274,14 @@ class Trainer(object):
 
     def iterate(self, epoch, phase, data_set):
         """main method for traning: creates metric aggregator, dataloaders and updates the model params"""
-        meter = Meter(phase, self.base_threshold)
+        self.meter.reset_dicts()
         start = time.strftime("%H:%M:%S")
         logging.info(f"Starting epoch: {epoch} | phase: {phase} | time: {start}")
         self.net.train(phase == "train")
-        
-        image_dataset = self.dataset_processor(data_set, phase, self.resize)
+    
+        self.image_dataset.set_phase(phase, data_set)
         dataloader = DataLoader(
-            image_dataset,
+            self.image_dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             pin_memory=True,
@@ -315,14 +316,14 @@ class Trainer(object):
             if self.activate:
                 outputs = torch.sigmoid(outputs)
             outputs = outputs.detach().cpu()
-            meter.update(targets, outputs)
+            self.meter.update(phase, targets, outputs)
             running_loss_tick = (running_loss * self.accumulation_steps) / (itr + 1)
 
-            meter.tb_log.add_scalar(f'{phase}_loss', running_loss_tick, (itr+1)*epoch)
+            self.meter.tb_log.add_scalar(f'{phase}_loss', running_loss_tick, (itr+1)*epoch)
             tk0.set_postfix(loss=(running_loss_tick))
             
         epoch_loss = (running_loss * self.accumulation_steps) / total_batches
-        dice, iou = meter.epoch_log(epoch_loss, (itr+1)*epoch)
+        dice, iou = self.meter.epoch_log(phase, epoch_loss, (itr+1)*epoch)
 
         self.losses[phase].append(epoch_loss)
         self.dice_scores[phase].append(dice)
