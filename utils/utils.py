@@ -37,21 +37,14 @@ def get_encoder(model, pretrained=True):
 
     return encoder, filters_dict[model]
 
-def post_process(preds, threshold, min_size):
+def post_process(mask, min_size):
     '''Post processing of each predicted mask, components with lesser number of pixels
     than `min_size` are ignored'''
 
-    # mask = cv2.threshold(preds, threshold, 1, cv2.THRESH_BINARY)[1]
-    # mask = mask.astype(np.uint8)
-
-    mask = (preds > threshold).astype(np.uint8)
-
-    num_component, component = cv2.connectedComponents(mask)
-    predictions = np.zeros((256, 1600), np.float32)
-    num = 0
+    num_component, component = cv2.connectedComponents(mask.astype(np.uint8))
+    predictions = np.zeros(mask.shape[:2], np.float32)
     for c in range(1, num_component):
         p = (component == c)
         if p.sum() > min_size:
             predictions[p] = 1
-            num += 1
-    return predictions, num
+    return predictions

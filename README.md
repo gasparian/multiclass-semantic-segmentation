@@ -25,16 +25,24 @@ Experiments plan:
         https://github.com/irfanICMLL/structure_knowledge_distillation
 
  To do:  
- - implenent train script:  
- - add predictions script;  
- - add distillation to train smaller network (??);    
+ - add distillation to train smaller network (??);  
 
 In progress:  
- - extend number of generated images with augmentations (cityscapes_utils.CityscapesDataset);  
- - OOM, may caused by big amount of classes - investigate!;  
- - solve a problem with class2color conversion (cityscapes_utils);  
- - add current learning rate to the tensorboard;  
+ - fix TTA - seems like horizontal flips make things worse;  
+ - create some train config file to use it at both training and evaluation phases (use `yaml`?);  
+ - add argument parser to `train` and `eval` scripts and fix the PATHs in these files;  
 
  Done:
+- add pictures dump to the eval;  
+- load script;  
+- add predictions script;  
+- use resized images for training and resize back for prediction and loss calc. (`nn.functional.interpolate`);  
+- add current learning rate to the tensorboard;  
 - add dataloader for cityscapes and drop dataloader for `steel`;  
 - add tensorboard logs;  
+
+
+Logs:  
+```
+tensorboard --logdir /samsung_drive/semantic_segmentation/tests/tensorboard
+```  

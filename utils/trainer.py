@@ -29,7 +29,8 @@ class Meter:
     def __init__(self, root_result_dir="", base_threshold=.5):
         self.base_threshold = base_threshold # threshold
         # tensorboard logging
-        self.tb_log = SummaryWriter(log_dir=os.path.join(root_result_dir, 'tensorboard'))
+        if root_result_dir:
+            self.tb_log = SummaryWriter(log_dir=os.path.join(root_result_dir, 'tensorboard'))
         self.reset_dicts()
     
     def reset_dicts(self):
@@ -132,11 +133,13 @@ class BCEDiceLoss:
     """
 
     def __init__(self, bce_weight=1., weight=None, eps=1e-7, 
-                 smooth=1., class_weights=[]):
+                 smooth=1., class_weights=[], threshold=0., activate=False):
 
         self.bce_weight = bce_weight
         self.eps = eps
         self.smooth = smooth
+        self.threshold = threshold # 0 or apply sigmoid and threshold > .5 instead
+        self.activate = activate
         self.class_weights = class_weights
         self.nll = torch.nn.BCEWithLogitsLoss(weight=weight)
 
@@ -144,8 +147,10 @@ class BCEDiceLoss:
         loss = self.bce_weight * self.nll(logits, true)
         if self.bce_weight < 1.:
             dice_loss = 0.
-            batch_size, num_classes = logits.shape[:2] 
-            logits = (logits > 0).float() # ...or apply sigmoid and threshold > .5 instead
+            batch_size, num_classes = logits.shape[:2]
+            if self.activate:
+                logits = torch.sigmoid(logits)
+            logits = (logits > self.threshold).float()
             # TO DO: vectorize the code below
             for c in range(num_classes):
                 iflat = logits[:, c,...].view(batch_size, -1)
@@ -220,12 +225,16 @@ class Trainer(object):
         self.wd = weights_decay
         self.num_epochs = num_epochs
         self.model_path = model_path
+        self.start_epoch = 0
         cudnn.benchmark = True
         
         self.accumulation_steps = self.batch_size * self.accumulation_batches
         self.reset = reset
+        if not model_path:
+            self.reset = False
         self.image_dataset = image_dataset
-        self.criterion = BCEDiceLoss(bce_weight=self.bce_loss_weight, class_weights=self.class_weights)
+        self.criterion = BCEDiceLoss(bce_weight=self.bce_loss_weight, class_weights=self.class_weights, 
+                                     threshold=self.base_threshold, activate=self.activate)
         self.optimizer = optimizer(self.net.parameters(), lr=self.lr)
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode="min", patience=self.scheduler_patience, verbose=True)
         
@@ -233,6 +242,8 @@ class Trainer(object):
         self.iou_scores = {phase: [] for phase in self.phases}
         self.dice_scores = {phase: [] for phase in self.phases}
 
+        if self.reset:
+            self.make_new_dir()
         self.meter = Meter(self.model_path, self.base_threshold)
 
         logging.info(f"Trainer initialized on {len(self.devices_ids)} devices!")
@@ -242,9 +253,12 @@ class Trainer(object):
         # send all variables to selected device
         images = images.to(self.device)
         masks = targets.to(self.device)
-
         # compute loss
         outputs = self.net(images)
+        orig_size = masks.size()[-2:]
+        if outputs.size()[-2:] != orig_size:
+            # resize predictions back to the original size (mask size)
+            outputs = nn.functional.interpolate(outputs, size=orig_size, mode='bilinear', align_corners=True)
         loss = self.criterion(outputs, masks)
         return loss, outputs
     
@@ -301,7 +315,7 @@ class Trainer(object):
                 self.freeze_flag = False
                 self.freeze_encoder()
                 
-            images, targets = batch
+            images, targets, __ = batch
             loss, outputs = self.forward(images, targets)
             loss = loss / self.accumulation_steps
             if phase == "train":
@@ -319,18 +333,20 @@ class Trainer(object):
             self.meter.update(phase, targets, outputs)
             running_loss_tick = (running_loss * self.accumulation_steps) / (itr + 1)
 
-            self.meter.tb_log.add_scalar(f'{phase}_loss', running_loss_tick, (itr+1)*epoch)
+            self.meter.tb_log.add_scalar(f'{phase}_loss', running_loss_tick, itr+total_batches*epoch)
             tk0.set_postfix(loss=(running_loss_tick))
+
+        last_itr = itr+total_batches*epoch
             
         epoch_loss = (running_loss * self.accumulation_steps) / total_batches
-        dice, iou = self.meter.epoch_log(phase, epoch_loss, (itr+1)*epoch)
+        dice, iou = self.meter.epoch_log(phase, epoch_loss, last_itr)
 
         self.losses[phase].append(epoch_loss)
         self.dice_scores[phase].append(dice)
         self.iou_scores[phase].append(iou)
 
         torch.cuda.empty_cache()
-        return epoch_loss, dice, iou
+        return epoch_loss, dice, iou, last_itr
     
     def make_new_dir(self):
         """makes new directory, if needed"""
@@ -345,18 +361,38 @@ class Trainer(object):
         for dict_name in ["losses", "dice_scores", "iou_scores"]:
             pickle.dump(self.__dict__[dict_name], open(f"{self.model_path}/{dict_name}.pickle.dat", "wb"))
 
+        # dump class variables for further traning
         training_meta = {}
         for k in self.__class__.__params:
             training_meta[k] = getattr(self, k)
         pickle.dump(training_meta, open(f"{self.model_path}/training_meta.pickle.dat", "wb"))
 
+    def get_current_lr(self):
+        for i, param_group in enumerate(self.optimizer.param_groups):
+            return float(param_group['lr'])
+
+    def load_model(self, path="", ckpt_name="best_model"):
+        """Loads full model state and basic training params"""
+
+        chkpt = torch.load(f"{path}/{ckpt_name}.pth")
+        self.start_epoch = chkpt['epoch']
+        self.best_metric = chkpt['best_metric']
+        self.net.load_state_dict(chkpt['state_dict'])
+        self.optimizer.load_state_dict(chkpt['optimizer'])
+        logging.info("******** State loaded ********")
+
+        training_meta = pickle.load(open(f"{path}/training_meta.pickle.dat", "rb"))
+        for k, v in training_meta.items():
+            setattr(self, k, v)
+        logging.info("******** Training params loaded ********")
+
     def start(self, train_set, val_set):
         """Runs training loop and saves intermediate state"""
-        if self.reset:
-            self.make_new_dir()
             
-        for epoch in range(self.num_epochs):
-            self.iterate(epoch, "train", train_set)
+        for epoch in range(self.start_epoch, self.num_epochs+self.start_epoch):
+            _, __, ___, last_itr = self.iterate(epoch, "train", train_set)
+            self.meter.tb_log.add_scalar(f'learning_rate', self.get_current_lr(), last_itr)
+
             state = {
                 "epoch": epoch,
                 "best_metric": self.best_metric,
@@ -365,8 +401,8 @@ class Trainer(object):
             }
             
             with torch.no_grad():
-                val_loss, val_dice, val_iou = self.iterate(epoch, "val", val_set)
-                key_metrics = {"loss": val_loss, "dice": -1.*val_dice, "iou": -1.*val_iou}
+                val_loss, val_dice, val_iou, __ = self.iterate(epoch, "val", val_set)
+                key_metrics = {"loss": val_loss, "dice": -1.*val_dice, "iou": -1.*val_iou} # -1* for the scheduler
                 self.scheduler.step(val_loss)
 
             is_last_epoch = epoch == (self.num_epochs - 1)

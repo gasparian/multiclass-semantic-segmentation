@@ -49,7 +49,7 @@ class TTAWrapper(nn.Module):
         self.merge_mode = merge_mode
 
         if self.merge_mode not in ['mean', 'tsharpen']:
-            raise ValueError('Not correct merge type `{}`.'.format(self.merge_mode))
+            raise ValueError('Merge type is not correct: `{}`.'.format(self.merge_mode))
     
     def forward(self, images):
         result = []

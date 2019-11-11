@@ -68,7 +68,7 @@ class LabelEncoder:
         """
         for unique in np.unique(labelIds):
             labelIds[labelIds == unique] = self.cityscapes_labels_df[self.cityscapes_labels_df["id"] == unique]["catId"]
-        return labelIds.astype(np.uint8)
+        return labelIds.astype(int)
 
     def make_ohe(self, labelIds, mode="catId"):
         """
@@ -84,7 +84,7 @@ class LabelEncoder:
         for c in classes:
             ys, xs = np.where(labelIds[..., 0] == c)
             ohe_labels[ys, xs, c] = 1
-        return ohe_labels.astype(np.uint8)
+        return ohe_labels.astype(int)
 
     def inverse_ohe(self, ohe_labels):
         """converts one-hot encoded mask to the 3-ch multiclass mask"""
@@ -92,10 +92,9 @@ class LabelEncoder:
         for ch in range(ohe_labels.shape[-1]):
             ys, xs = np.where(ohe_labels[..., ch])
             inverse_ohe_img[ys, xs] = ch
-        inverse_ohe_img = np.repeat(inverse_ohe_img, 3, axis=2).astype(np.uint8)
+        inverse_ohe_img = np.repeat(inverse_ohe_img, 3, axis=2).astype(int)
         return inverse_ohe_img
 
-    # TO DO: problem with channels! 
     def class2color(self, ohe_labels, mode="catId"):
         """
         converts multiclass mask to (R,G,B) color mask
@@ -145,6 +144,8 @@ class TrainDataset:
                     os.path.join(self.path_img, "train", name+"_leftImg8bit.png"), 
                     os.path.join(self.path_masks, "train", name+"_gtFine_labelIds.png")
                 ))
+        np.random.shuffle(train_dataset)
+        np.random.shuffle(val_dataset)
         return train_dataset, val_dataset
 
 class CityscapesDataset(Dataset):
@@ -152,8 +153,9 @@ class CityscapesDataset(Dataset):
     def __init__(self, hard_augs=False, resize=None, train_on_cats=True):
         self.orig_h, self.orig_w = 1024, 2048
         self.h, self.w = self.orig_h, self.orig_w
-        if resize is not None:
-            self.h, self.w = resize
+        self.resize = resize
+        if self.resize is not None:
+            self.h, self.w = self.resize
         self.data_set = []
         self.phase = "train"
         self.hard_augs = hard_augs
@@ -165,6 +167,7 @@ class CityscapesDataset(Dataset):
         self.random_crop_w = int(self.orig_w*0.9)
         self.mean=[0.485, 0.456, 0.406]
         self.std=[0.229, 0.224, 0.225]
+        self.final_resizing = Resize(self.h, self.w, interpolation=4, p=1.0)
 
     def set_phase(self, phase, data_set):
         """
@@ -177,21 +180,19 @@ class CityscapesDataset(Dataset):
     def get_transforms(self):
         list_transforms = []
         if self.phase == "train":
-            list_transforms.extend(
-                [
+            list_transforms.extend([
                     # Spatial transforms
-                    HorizontalFlip(p=0.7),
-                    RandomCrop(self.random_crop_h, self.random_crop_w, p=1.0),
-                    Resize(self.h, self.w, interpolation=4, p=1.0),
+                    HorizontalFlip(p=0.6),
+                    RandomCrop(self.random_crop_h, self.random_crop_w, p=0.8),
+                    Resize(self.orig_h, self.orig_w, interpolation=4, p=1.0),
                     # RGB transormations
                     OneOf([
                         RandomBrightness(p=0.5, limit=0.2),
                         RandomContrast(p=0.5, limit=0.2),
                         RandomGamma(p=0.5, gamma_limit=(80, 120))
                     ], p=1.)
-                ]
-            )
-            
+                ])
+                
             if self.hard_augs:
                 list_transforms.extend(
                     # Hard augs 
@@ -200,17 +201,11 @@ class CityscapesDataset(Dataset):
                         RandomRain(p=0.5, slant_lower=-20, slant_upper=20, rain_type=None), # [None, "drizzle", "heavy", "torrestial"]
                         RandomSnow(p=0.5, snow_point_lower=0.1, snow_point_upper=0.3, brightness_coeff=2.5),
                         RandomSunFlare(p=0.5, flare_roi=(0, 0, 1, 0.5), angle_lower=0, angle_upper=1, num_flare_circles_lower=3, 
-                                       num_flare_circles_upper=6, src_radius=400, src_color=(255, 255, 255))  
+                                        num_flare_circles_upper=6, src_radius=400, src_color=(255, 255, 255))  
                     ], p=0.8)
                 )
-            
-        list_transforms.extend(
-            [
-                Normalize(mean=self.mean, std=self.std, p=1),
-                ToTensor(),
-            ]
-        )
-        
+
+        list_transforms.append(Normalize(mean=self.mean, std=self.std, p=1))
         list_trfms = Compose(list_transforms)
         return list_trfms
 
@@ -221,14 +216,12 @@ class CityscapesDataset(Dataset):
         if self.train_on_cats:
             labelIds = self.label_encoder.classes2cats(labelIds)
         mask = self.label_encoder.make_ohe(labelIds, mode="catId" if self.train_on_cats else "classId")
-        augmented = self.transformer(image=img, mask=mask)
-        
-        img = augmented['image'] # 3xHxW
-        mask = augmented['mask']
-        # mask = self.label_encoder.make_ohe(augmented['mask'], 
-        #     mode="catId" if self.train_on_cats else "classId") # HxWxN_CLASSES
-        mask = mask[0].permute(2, 0, 1) # HxWxN_CLASSES
-        return img, mask
+        img, mask = self.transformer(image=img, mask=mask).values()
+        if self.resize is not None:
+            img = self.final_resizing(image=img)["image"]
+        img, mask = ToTensor()(image=img, mask=mask).values()
+        mask = mask[0].permute(2, 0, 1) # N_CLASSESxHxW
+        return img, mask, image_id[0].split("/")[-1]
 
     def __len__(self):
         return len(self.data_set)
