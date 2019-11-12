@@ -1,0 +1,43 @@
+TRAIN_DATASET:
+  path_masks: "./data/cityscapes/gtFine/gtFine"
+  path_img: "./data/cityscapes/leftImg8bit"
+  train_root_path: "./data/cityscapes/leftImg8bit/train"
+  val_cities: ["ulm", "bremen", "aachen"]
+
+CITYSCAPES_DATASET:
+  hard_augs: False
+  resize: [512, 1024]
+  train_on_cats: True
+
+MODEL:
+  mode: "UNET" # UNET or FPN
+  backbone: "resnext50"
+  num_classes: 8
+
+TRAINING:  
+  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize"
+  load_checkpoint: "/samsung_drive/semantic_segmentation/UNET_4x_downsize/best_model.pth"
+  weights_decay: 0.0
+  batch_size: 6
+  accumulation_batches: 1
+  freeze_n_iters: 0
+  lr: 0.001
+  num_epochs: 30
+  devices_ids: [0, 1]
+  key_metric: "dice"
+  base_threshold: .0
+  activate: False
+  bce_loss_weight: 1.
+  class_weights: [1., 1., 1., 1., 1., 1., 1., 1.]
+  scheduler_patience: 3
+
+EVAL:
+  model_path: "/samsung_drive/semantic_segmentation/tests/best_model.pth"
+  eval_images_path: "/samsung_drive/semantic_segmentation/tests/eval_images"
+  mode: "UNET" # UNET or FPN
+  device: "cuda:0" # cpu or cuda
+  resize: True
+  train_on_cats: True
+  apply_tta: False
+  activate: False
+  base_threshold: 0.

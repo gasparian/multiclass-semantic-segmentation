@@ -144,6 +144,7 @@ class TrainDataset:
                     os.path.join(self.path_img, "train", name+"_leftImg8bit.png"), 
                     os.path.join(self.path_masks, "train", name+"_gtFine_labelIds.png")
                 ))
+                
         np.random.shuffle(train_dataset)
         np.random.shuffle(val_dataset)
         return train_dataset, val_dataset

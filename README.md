@@ -24,15 +24,18 @@ Experiments plan:
         https://arxiv.org/pdf/1903.04197.pdf
         https://github.com/irfanICMLL/structure_knowledge_distillation
 
- To do:  
+To do:  
  - add distillation to train smaller network (??);  
 
 In progress:  
- - fix TTA - seems like horizontal flips make things worse;  
- - create some train config file to use it at both training and evaluation phases (use `yaml`?);  
- - add argument parser to `train` and `eval` scripts and fix the PATHs in these files;  
+ - test yaml configs;  
+ - get validation statistics for each class;  
 
- Done:
+Done:
+- add yaml config to eval script;  
+- create some train config file to use it at both training and evaluation phases (use `yaml`?);  
+- add load-checkp option into Trainer init;  
+- fix TTA - seems like horizontal flips make things worse (vert. only kept);  
 - add pictures dump to the eval;  
 - load script;  
 - add predictions script;  

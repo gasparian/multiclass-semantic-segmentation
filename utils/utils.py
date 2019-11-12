@@ -1,4 +1,5 @@
 import os
+import yaml
 
 import cv2
 import numpy as np
@@ -48,3 +49,8 @@ def post_process(mask, min_size):
         if p.sum() > min_size:
             predictions[p] = 1
     return predictions
+
+def load_train_config(path="train_config.yaml"):
+    with open(path) as f:
+        data = yaml.load(f)
+    return data

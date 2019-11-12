@@ -168,16 +168,14 @@ class Trainer(object):
     
     '''Basic functionality for models fitting'''
     
-    __params = ('num_workers', 'model_path', 'batch_size', 'class_weights', 'accumulation_batches',
+    __params = ('num_workers', 'class_weights', 'accumulation_batches',
                 'lr', 'wd', 'base_threshold', 'scheduler_patience', 'activate',
                 'num_epochs', 'freeze_n_iters', 'bce_loss_weight', 'key_metric')
     
-    def __init__(self, model=None, model_path='', image_dataset=None, reset=True, 
-                 batch_size=4, freeze_n_iters=20, weights_decay=5e-5,
-                 lr=5e-4, num_epochs=20, bce_loss_weight=.9, devices_ids=[0],
-                 accumulation_batches=4, key_metric="dice", optimizer=None, 
-                 base_threshold=.0, scheduler_patience=3, activate=False,
-                 class_weights=[1/4 for i in range(4)]):
+    def __init__(self, model=None, image_dataset=None, optimizer=None, **kwargs):
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
         # Initialize logger
         logging.basicConfig(
@@ -217,9 +215,6 @@ class Trainer(object):
         self.base_threshold = base_threshold
         self.bce_loss_weight = bce_loss_weight
         self.class_weights = class_weights
-        self.accumulation_batches = accumulation_batches
-        self.batch_size = batch_size
-        self.num_workers = self.batch_size
         self.scheduler_patience = scheduler_patience
         self.lr = lr
         self.wd = weights_decay
@@ -227,11 +222,7 @@ class Trainer(object):
         self.model_path = model_path
         self.start_epoch = 0
         cudnn.benchmark = True
-        
-        self.accumulation_steps = self.batch_size * self.accumulation_batches
-        self.reset = reset
-        if not model_path:
-            self.reset = False
+
         self.image_dataset = image_dataset
         self.criterion = BCEDiceLoss(bce_weight=self.bce_loss_weight, class_weights=self.class_weights, 
                                      threshold=self.base_threshold, activate=self.activate)
@@ -242,11 +233,44 @@ class Trainer(object):
         self.iou_scores = {phase: [] for phase in self.phases}
         self.dice_scores = {phase: [] for phase in self.phases}
 
-        if self.reset:
-            self.make_new_dir()
         self.meter = Meter(self.model_path, self.base_threshold)
 
+        if load_checkpoint is not None:
+            self.load_model(ckpt_name=load_checkpoint)
+
+        self.accumulation_batches = accumulation_batches
+        self.batch_size = batch_size
+        self.num_workers = self.batch_size
+        self.accumulation_steps = self.batch_size * self.accumulation_batches
+
         logging.info(f"Trainer initialized on {len(self.devices_ids)} devices!")
+
+    def load_model(self, ckpt_name="best_model.pth"):
+        """Loads full model state and basic training params"""
+        path = "/".join(ckpt_name.split("/")[:-1])
+        chkpt = torch.load(ckpt_name)
+        self.start_epoch = chkpt['epoch']
+        self.best_metric = chkpt['best_metric']
+
+        if self.multi_gpu_flag:
+            # fix the DataParallel caused problem with keys names
+            new_state_dict = {}
+            for k in chkpt["state_dict"]:
+                #new_k = re.sub("module.", "", k)
+                new_k = "module." + k
+                new_state_dict[new_k] = copy.deepcopy(chkpt["state_dict"][k])
+            self.net.load_state_dict(new_state_dict)
+        else:
+            self.net.load_state_dict(chkpt['state_dict'])
+
+        self.optimizer.load_state_dict(chkpt['optimizer'])
+        logging.info("******** State loaded ********")
+
+        training_meta = pickle.load(open(f"{path}/training_meta.pickle.dat", "rb"))
+        for k, v in training_meta.items():
+            if k != "model_path":
+                setattr(self, k, v)
+        logging.info("******** Training params loaded ********")
 
     def forward(self, images, targets):
         """allocate data and runs forward pass through the network"""
@@ -349,7 +373,7 @@ class Trainer(object):
         return epoch_loss, dice, iou, last_itr
     
     def make_new_dir(self):
-        """makes new directory, if needed"""
+        """makes new directory instead of existing one"""
         try:
             shutil.rmtree(self.model_path)
         except:
@@ -370,21 +394,6 @@ class Trainer(object):
     def get_current_lr(self):
         for i, param_group in enumerate(self.optimizer.param_groups):
             return float(param_group['lr'])
-
-    def load_model(self, path="", ckpt_name="best_model"):
-        """Loads full model state and basic training params"""
-
-        chkpt = torch.load(f"{path}/{ckpt_name}.pth")
-        self.start_epoch = chkpt['epoch']
-        self.best_metric = chkpt['best_metric']
-        self.net.load_state_dict(chkpt['state_dict'])
-        self.optimizer.load_state_dict(chkpt['optimizer'])
-        logging.info("******** State loaded ********")
-
-        training_meta = pickle.load(open(f"{path}/training_meta.pickle.dat", "rb"))
-        for k, v in training_meta.items():
-            setattr(self, k, v)
-        logging.info("******** Training params loaded ********")
 
     def start(self, train_set, val_set):
         """Runs training loop and saves intermediate state"""

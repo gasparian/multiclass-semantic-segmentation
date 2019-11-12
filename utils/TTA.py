@@ -4,10 +4,6 @@
 import torch
 from torch import nn
 
-def hflip(x):
-    """flip batch of images horizontally"""
-    return x.flip(1)
-
 def vflip(x):
     """flip batch of images vertically"""
     return x.flip(2)
@@ -15,29 +11,19 @@ def vflip(x):
 def transform(x):
     """
     input: 3D tensor
-    output: 4D tensor: 
-        [orig, hflip, vflip, hflip->vflip]
+    output: 4D tensor: [orig, vflip]
     """
-    output = [x]
-    _x = hflip(x)
-    output.append(_x)
-    _x = vflip(_x)
-    x = vflip(x)
-    output.extend([x, _x])
-    return torch.cat([el.unsqueeze(0) for el in output])
+    output = [x.unsqueeze(0), vflip(x).unsqueeze(0)]
+    return torch.cat(output)
     
 def inv_transform(x):
     """
     input: 4D tensor
     output: 4D tensor
-    inverse transform: 
-        [orig, hflip, vflip, vflip->hflip]
+    inverse transform: [orig, vflip->orig]
     """
-    x[1] = hflip(x[1])
-    x[2] = vflip(x[2])
-    x[3] = vflip(hflip(x[3]))
+    x[1] = vflip(x[1])
     return x
-    
     
 class TTAWrapper(nn.Module):
     
