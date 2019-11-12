@@ -183,7 +183,6 @@ class Trainer(object):
             format='%(asctime)s : %(levelname)s : %(message)s'
         )
 
-        self.devices_ids = devices_ids
         if not isinstance(self.devices_ids, list):
             self.devices_ids = list(self.devices_ids)
 
@@ -209,17 +208,6 @@ class Trainer(object):
         self.phases = ["train", "val"]
         torch.set_default_tensor_type("torch.cuda.FloatTensor")
         self.freeze_flag = True
-        self.key_metric = key_metric
-        self.activate = activate
-        self.freeze_n_iters = freeze_n_iters
-        self.base_threshold = base_threshold
-        self.bce_loss_weight = bce_loss_weight
-        self.class_weights = class_weights
-        self.scheduler_patience = scheduler_patience
-        self.lr = lr
-        self.wd = weights_decay
-        self.num_epochs = num_epochs
-        self.model_path = model_path
         self.start_epoch = 0
         cudnn.benchmark = True
 
@@ -235,11 +223,9 @@ class Trainer(object):
 
         self.meter = Meter(self.model_path, self.base_threshold)
 
-        if load_checkpoint is not None:
-            self.load_model(ckpt_name=load_checkpoint)
+        if self.load_checkpoint is not None:
+            self.load_model(ckpt_name=self.load_checkpoint)
 
-        self.accumulation_batches = accumulation_batches
-        self.batch_size = batch_size
         self.num_workers = self.batch_size
         self.accumulation_steps = self.batch_size * self.accumulation_batches
 
