@@ -34,7 +34,6 @@ if __name__ == "__main__":
 
     global_start = time.time()
 
-    label_encoder = LabelEncoder()
     train_dataset = TrainDataset(**TRAIN_DATASET)
     trainset, valset = train_dataset.get_paths()
     image_dataset = CityscapesDataset(**CITYSCAPES_DATASET)
@@ -74,7 +73,7 @@ if __name__ == "__main__":
     state = torch.load(EVAL["model_path"], map_location=lambda storage, loc: storage)
     model.load_state_dict(state["state_dict"])
 
-    if APPLY_TTA:
+    if EVAL["apply_tta"]:
         TTAModel = TTAWrapper(model, 
                               merge_mode="mean", 
                               activate=EVAL["activate"])
@@ -107,7 +106,7 @@ if __name__ == "__main__":
         # dump predictions as images
         outputs = (outputs > EVAL["base_threshold"]).int() # thresholding
         outputs = outputs.squeeze().permute(1, 2, 0).numpy()
-        pic = label_encoder.class2color(outputs, mode="catId")
+        pic = image_dataset.label_encoder.class2color(outputs, mode="catId")
         pred_name = "_".join(image_id[0].split("_")[:-1]) + "_predicted_mask.png"
         cv2.imwrite(os.path.join(EVAL["eval_images_path"], pred_name), pic)
 

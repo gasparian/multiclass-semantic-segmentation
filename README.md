@@ -28,10 +28,10 @@ To do:
  - add distillation to train smaller network (??);  
 
 In progress:  
- - test yaml configs;  
  - get validation statistics for each class;  
 
 Done:
+- test yaml configs;  
 - add yaml config to eval script;  
 - create some train config file to use it at both training and evaluation phases (use `yaml`?);  
 - add load-checkp option into Trainer init;  

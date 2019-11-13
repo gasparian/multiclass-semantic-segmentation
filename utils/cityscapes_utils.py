@@ -15,7 +15,7 @@ from .utils import open_img
 
 class LabelEncoder:
 
-    def __init__(self):
+    def __init__(self, select_classes=[]):
         # https://github.com/mcordts/cityscapesScripts/blob/master/cityscapesscripts/helpers/labels.py  
         self.labels = [
             (                   "name","id", "trainId",         "category",  "catId","hasInstances","ignoreInEval",        "color"),
@@ -55,31 +55,33 @@ class LabelEncoder:
             (  'bicycle'              , 33 ,       18 , 'vehicle'         , 7       , True         , False        , (119, 11, 32) ),
             (  'license plate'        , -1 ,       -1 , 'vehicle'         , 7       , False        , True         , (  0,  0,142) ),
         ]
+
         # create labels dataframe
         self.cityscapes_labels_df = pd.DataFrame(self.labels[1:], columns=self.labels[0])
+        self.cityscapes_labels_df.loc[self.cityscapes_labels_df["trainId"].isin([255, -1]), "trainId"] = 19
         self.categories = np.arange(self.cityscapes_labels_df["catId"].nunique())
-        self.classes = self.cityscapes_labels_df["id"].unique()
-
-    def classes2cats(self, labelIds):
-        """
-        converts cityscapes classes to the categories
-        in order to decrease the number of classes
-        (img --> img)
-        """
-        for unique in np.unique(labelIds):
-            labelIds[labelIds == unique] = self.cityscapes_labels_df[self.cityscapes_labels_df["id"] == unique]["catId"]
-        return labelIds.astype(int)
+        if select_classes:
+            selected = self.cityscapes_labels_df[
+                self.cityscapes_labels_df["name"].isin(select_classes)]["id"].unique()
+            self.cityscapes_labels_df.loc[~self.cityscapes_labels_df["id"].isin(selected), "trainId"] = len(selected)
+            for i, j in enumerate(selected):
+                self.cityscapes_labels_df.loc[self.cityscapes_labels_df["id"] == j, "trainId"] = i
+        self.classes = self.cityscapes_labels_df["trainId"].unique()
 
     def make_ohe(self, labelIds, mode="catId"):
         """
         converts image with labels into the one-hot encoded format
         (img[...,] --> img[..., N_CLASSES])
-        mode : `catId` or `classId`
+        mode : `catId` or `trainId`
         """ 
-        classes = self.categories   
-        if mode == "classId":
+        classes = self.categories
+        if mode == "trainId":
             classes = self.classes
-            
+
+        for unique in np.unique(labelIds):
+            labelIds[labelIds == unique] = self.cityscapes_labels_df[self.cityscapes_labels_df["id"] == unique][mode]
+        labelIds = labelIds.astype(int)
+
         ohe_labels = np.zeros(labelIds.shape[:2] + (len(classes),))
         for c in classes:
             ys, xs = np.where(labelIds[..., 0] == c)
@@ -98,21 +100,14 @@ class LabelEncoder:
     def class2color(self, ohe_labels, mode="catId"):
         """
         converts multiclass mask to (R,G,B) color mask
-        mode : `catId` or `classId`
+        mode : `catId` or `trainId`
         """
         colored_labels = np.zeros(ohe_labels.shape[:2] + (3,)).astype(np.uint8)
-        mode = "catId"
-
-        col = mode
-        if mode == "classId":
-            col = "id"
-
         for ch in range(ohe_labels.shape[-1]):
-            color = self.cityscapes_labels_df[self.cityscapes_labels_df[col] == ch]["color"].iloc[0]
+            color = self.cityscapes_labels_df[self.cityscapes_labels_df[mode] == ch]["color"].iloc[0]
             ys, xs = np.where(ohe_labels[..., ch])
             colored_labels[ys, xs, :] = color
         return colored_labels
-
 
 class TrainDataset:
 
@@ -151,7 +146,7 @@ class TrainDataset:
 
 class CityscapesDataset(Dataset):
     
-    def __init__(self, hard_augs=False, resize=None, train_on_cats=True):
+    def __init__(self, hard_augs=False, resize=None, train_on_cats=True, select_classes=[]):
         self.orig_h, self.orig_w = 1024, 2048
         self.h, self.w = self.orig_h, self.orig_w
         self.resize = resize
@@ -161,7 +156,7 @@ class CityscapesDataset(Dataset):
         self.phase = "train"
         self.hard_augs = hard_augs
         self.train_on_cats = train_on_cats
-        self.label_encoder = LabelEncoder()
+        self.label_encoder = LabelEncoder(select_classes)
         # define random crop h and w based 
         # on the original image size: 
         self.random_crop_h = int(self.orig_h*0.9)
@@ -214,9 +209,7 @@ class CityscapesDataset(Dataset):
         image_id = self.data_set[idx]    
         img = open_img(image_id[0])
         labelIds = open_img(image_id[1])
-        if self.train_on_cats:
-            labelIds = self.label_encoder.classes2cats(labelIds)
-        mask = self.label_encoder.make_ohe(labelIds, mode="catId" if self.train_on_cats else "classId")
+        mask = self.label_encoder.make_ohe(labelIds, mode="catId" if self.train_on_cats else "trainId")
         img, mask = self.transformer(image=img, mask=mask).values()
         if self.resize is not None:
             img = self.final_resizing(image=img)["image"]

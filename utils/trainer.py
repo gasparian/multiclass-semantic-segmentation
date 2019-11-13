@@ -169,7 +169,7 @@ class Trainer(object):
     '''Basic functionality for models fitting'''
     
     __params = ('num_workers', 'class_weights', 'accumulation_batches',
-                'lr', 'wd', 'base_threshold', 'scheduler_patience', 'activate',
+                'lr', 'weights_decay', 'base_threshold', 'scheduler_patience', 'activate',
                 'num_epochs', 'freeze_n_iters', 'bce_loss_weight', 'key_metric')
     
     def __init__(self, model=None, image_dataset=None, optimizer=None, **kwargs):
@@ -191,7 +191,7 @@ class Trainer(object):
         # in other cases - try `DistributedDataParallel` https://github.com/pytorch/examples/blob/master/imagenet/main.py
 
         if torch.cuda.is_available():
-            main_device = "cuda:%i" % devices_ids[0]
+            main_device = "cuda:%i" % self.devices_ids[0]
         else:
             main_device = "cpu"
         self.device = torch.device(main_device)
@@ -199,7 +199,7 @@ class Trainer(object):
         self.net = model
         self.multi_gpu_flag = (torch.cuda.device_count() > 1) * (len(self.devices_ids) > 1)
         if self.multi_gpu_flag:
-            self.net = nn.DataParallel(self.net, device_ids=devices_ids, output_device=devices_ids[0])
+            self.net = nn.DataParallel(self.net, device_ids=self.devices_ids, output_device=self.devices_ids[0])
         self.net.to(self.device)
 
         ############################################################################################
@@ -223,7 +223,7 @@ class Trainer(object):
 
         self.meter = Meter(self.model_path, self.base_threshold)
 
-        if self.load_checkpoint is not None:
+        if self.load_checkpoint:
             self.load_model(ckpt_name=self.load_checkpoint)
 
         self.num_workers = self.batch_size
@@ -249,12 +249,13 @@ class Trainer(object):
         else:
             self.net.load_state_dict(chkpt['state_dict'])
 
-        self.optimizer.load_state_dict(chkpt['optimizer'])
+        if self.load_optimizer_state:
+            self.optimizer.load_state_dict(chkpt['optimizer'])
         logging.info("******** State loaded ********")
 
         training_meta = pickle.load(open(f"{path}/training_meta.pickle.dat", "rb"))
         for k, v in training_meta.items():
-            if k != "model_path":
+            if k in self.__class__.__params:
                 setattr(self, k, v)
         logging.info("******** Training params loaded ********")
 
@@ -294,7 +295,7 @@ class Trainer(object):
         """adjust learning rate and weights decay"""
         for param_group in self.optimizer.param_groups:
             for param in param_group['params']:
-                param.data = param.data.add(-self.wd * param_group['lr'], param.data)
+                param.data = param.data.add(-1.*self.weights_decay * param_group['lr'], param.data)
 
     def iterate(self, epoch, phase, data_set):
         """main method for traning: creates metric aggregator, dataloaders and updates the model params"""
@@ -331,7 +332,7 @@ class Trainer(object):
             if phase == "train":
                 loss.backward()
                 if (itr + 1 ) % self.accumulation_steps == 0:
-                    if self.wd > 0:
+                    if self.weights_decay > 0:
                         self.weights_decay()
                     self.optimizer.step()
                     self.optimizer.zero_grad()

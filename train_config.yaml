@@ -7,22 +7,25 @@ TRAIN_DATASET:
 CITYSCAPES_DATASET:
   hard_augs: False
   resize: [512, 1024]
-  train_on_cats: True
+  select_classes: ["road"]
+  train_on_cats: False # Must be False if select_classes is not empty
 
 MODEL:
   mode: "UNET" # UNET or FPN
   backbone: "resnext50"
-  num_classes: 8
+  num_classes: 2
 
 TRAINING:  
-  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize"
-  load_checkpoint: "/samsung_drive/semantic_segmentation/UNET_4x_downsize/best_model.pth"
+  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_road"
+  load_checkpoint: "/samsung_drive/semantic_segmentation/UNET_4x_downsize_road/last_model.pth"
+  # load_checkpoint: ""
   weights_decay: 0.0
-  batch_size: 6
+  batch_size: 8
   accumulation_batches: 1
   freeze_n_iters: 0
+  load_optimizer_state: False
   lr: 0.001
-  num_epochs: 30
+  num_epochs: 40
   devices_ids: [0, 1]
   key_metric: "dice"
   base_threshold: .0
@@ -32,12 +35,10 @@ TRAINING:
   scheduler_patience: 3
 
 EVAL:
-  model_path: "/samsung_drive/semantic_segmentation/tests/best_model.pth"
-  eval_images_path: "/samsung_drive/semantic_segmentation/tests/eval_images"
-  mode: "UNET" # UNET or FPN
+  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_road/last_model.pth"
+  eval_images_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_road/eval_images"
   device: "cuda:0" # cpu or cuda
   resize: True
-  train_on_cats: True
   apply_tta: False
   activate: False
   base_threshold: 0.
