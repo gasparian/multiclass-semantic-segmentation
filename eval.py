@@ -53,7 +53,7 @@ if __name__ == "__main__":
                            input_channels=3, 
                            num_filters=32, 
                            Dropout=0.2, 
-                           res_blocks_dec=False)
+                           res_blocks_dec=MODEL["unet_res_blocks_decoder"])
 
     elif MODEL["mode"] == "FPN":
         model = FPN(encoder_name=MODEL["backbone"],
@@ -106,7 +106,7 @@ if __name__ == "__main__":
         # dump predictions as images
         outputs = (outputs > EVAL["base_threshold"]).int() # thresholding
         outputs = outputs.squeeze().permute(1, 2, 0).numpy()
-        pic = image_dataset.label_encoder.class2color(outputs, mode="catId")
+        pic = image_dataset.label_encoder.class2color(outputs, mode="catId" if CITYSCAPES_DATASET["train_on_cats"] else "trainId")
         pred_name = "_".join(image_id[0].split("_")[:-1]) + "_predicted_mask.png"
         cv2.imwrite(os.path.join(EVAL["eval_images_path"], pred_name), pic)
 

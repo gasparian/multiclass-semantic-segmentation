@@ -14,11 +14,12 @@ MODEL:
   mode: "UNET" # UNET or FPN
   backbone: "resnext50"
   num_classes: 2
+  unet_res_blocks_decoder: True # adds residual blocks inside decoder --> net become heavier 
 
 TRAINING:  
-  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_road"
-  load_checkpoint: "/samsung_drive/semantic_segmentation/UNET_4x_downsize_road/last_model.pth"
-  # load_checkpoint: ""
+  model_path: "/samsung_drive/semantic_segmentation/UNET_res_blocks_4x_downsize_road"
+  # load_checkpoint: "/samsung_drive/semantic_segmentation/UNET_res_blocks_4x_downsize_road/last_model.pth"
+  load_checkpoint: ""
   weights_decay: 0.0
   batch_size: 8
   accumulation_batches: 1
@@ -35,8 +36,8 @@ TRAINING:
   scheduler_patience: 3
 
 EVAL:
-  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_road/last_model.pth"
-  eval_images_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_road/eval_images"
+  model_path: "/samsung_drive/semantic_segmentation/UNET_res_blocks_4x_downsize_road/best_model.pth"
+  eval_images_path: "/samsung_drive/semantic_segmentation/UNET_res_blocks_4x_downsize_road/eval_images"
   device: "cuda:0" # cpu or cuda
   resize: True
   apply_tta: False

@@ -39,7 +39,7 @@ if __name__ == "__main__":
                            input_channels=3, 
                            num_filters=32, 
                            Dropout=0.2, 
-                           res_blocks_dec=False)
+                           res_blocks_dec=MODEL["unet_res_blocks_decoder"])
 
     elif MODEL["mode"] == "FPN":
         model = FPN(encoder_name=MODEL["backbone"],
