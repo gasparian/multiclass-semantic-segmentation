@@ -226,7 +226,7 @@ class Trainer(object):
         if self.load_checkpoint:
             self.load_model(ckpt_name=self.load_checkpoint)
 
-        self.num_workers = self.batch_size
+        self.num_workers = max(2, self.batch_size // 2)
         self.accumulation_steps = self.batch_size * self.accumulation_batches
 
         logging.info(f"Trainer initialized on {len(self.devices_ids)} devices!")

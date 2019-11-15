@@ -28,7 +28,7 @@ To do:
  - add distillation to train smaller network (??);  
 
 In progress:  
- - add post-processing - drop clusters on each predicted class;
+ - add post-processing - for README visualizations;  
  - make predictions on random sample of test set on eval phase;  
  - get validation statistics for each class;  
 
