@@ -115,7 +115,8 @@ class TrainDataset:
     cities for validation has been chosen to satisfy ~20% limitfor validation;  
     """
 
-    def __init__(self, path_masks, path_img, train_root_path, val_cities=["ulm", "bremen", "aachen"]):
+    def __init__(self, path_masks, path_img, train_root_path, 
+                 val_cities=["ulm", "bremen", "aachen"], mode=None, val_frac=None):
         self.path_masks = path_masks
         self.train_root_path = train_root_path
         self.val_cities = val_cities
@@ -142,25 +143,10 @@ class TrainDataset:
         np.random.shuffle(val_dataset)
         return train_dataset, val_dataset
 
-def TestDataset(test_root_path):
-
-    """
-    returns paths for hold-out test images
-    """
-        
-    cities = os.listdir(test_root_path)
-    dataset = []
-
-    for city in cities:
-        names = os.listdir(os.path.join(test_root_path, city))        
-        dataset.extend([os.path.join(test_root_path, name) for name in names])
-            
-    return dataset
-
 class CityscapesDataset(Dataset):
     
     def __init__(self, hard_augs=False, resize=None, train_on_cats=True, 
-                 select_classes=[], mode=None, orig_size=(1024, 2048)):
+                 select_classes=[], orig_size=(1024, 2048)):
         self.orig_h, self.orig_w = orig_size
         self.h, self.w = self.orig_h, self.orig_w
         self.resize = resize

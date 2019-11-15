@@ -2,9 +2,15 @@ PATHS:
   dataset: "cityscapes" # cityscapes or kitti 
   path_masks: "./data/cityscapes/gtFine/gtFine"
   path_img: "./data/cityscapes/leftImg8bit"
-  train_root_path: "./data/cityscapes/leftImg8bit/train"
   test_root_path: "./data/cityscapes/leftImg8bit/test"
-  val_cities: ["ulm", "bremen", "aachen"]
+  
+  # Args for Cityscapes dataset only
+  val_cities: ["ulm", "bremen", "aachen"] # for cityscapes only
+  train_root_path: "./data/cityscapes/leftImg8bit/train"
+
+  # Args for Kitti dataset only
+  val_frac: 0.2
+  mode: "lane" # lane or road in case of kitti dataset
 
 DATASET:
   hard_augs: False
@@ -12,7 +18,6 @@ DATASET:
   resize: [256, 512]
   select_classes: []
   train_on_cats: True # Must be False if select_classes is not empty
-  mode: "lane" # lane or road in case of kitti dataset
 
 MODEL:
   mode: "FPN" # UNET or FPN

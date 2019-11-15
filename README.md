@@ -28,13 +28,14 @@ To do:
  - add distillation to train smaller network (??);  
 
 In progress:  
+ - implement KittiLaneLabelEncoder;  
  - retraine one of the networks with sigmoid activation at the end and .5 threshold;  
  - add post-processing - for README visualizations;  
- - make predictions on the hold-out test set in separate script;  
  - get validation statistics for each class;  
 
 Done:
 - test yaml configs;  
+- make predictions on the hold-out test set in separate script;  
 - add yaml config to eval script;  
 - create some train config file to use it at both training and evaluation phases (use `yaml`?);  
 - add load-checkp option into Trainer init;  

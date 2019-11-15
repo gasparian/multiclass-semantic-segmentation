@@ -13,8 +13,8 @@ import cv2
 import torch
 from torch.utils.data import DataLoader
 
-from utils import Meter, UnetResNet, FPN, TTAWrapper, load_train_config, \
-                  LabelEncoder, TrainDataset, CityscapesDataset, post_process
+from utils import Meter, UnetResNet, FPN, TTAWrapper, load_train_config, TestDataset, \
+                  LabelEncoder, TrainDataset, CityscapesDataset, post_process, KittiLaneDataset
 
 warnings.filterwarnings("ignore")
 seed = 69

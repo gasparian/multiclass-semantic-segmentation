@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from utils import TrainDataset, LabelEncoder, CityscapesDataset, \
+from utils import TrainDataset, LabelEncoder, CityscapesDataset, KittiLaneDataset, \
                   Trainer, Meter, UnetResNet, FPN, load_train_config
 
 warnings.filterwarnings("ignore")
