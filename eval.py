@@ -34,18 +34,31 @@ if __name__ == "__main__":
 
     global_start = time.time()
 
-    train_dataset = TrainDataset(**TRAIN_DATASET)
-    trainset, valset = train_dataset.get_paths()
-    image_dataset = CityscapesDataset(**CITYSCAPES_DATASET)
+    if not EVAL["test_mode"]:
+        train_dataset = TrainDataset(**PATHS)
+        trainset, valset = train_dataset.get_paths()
 
-    image_dataset.set_phase("val", valset)
-    dataloader = DataLoader(
-        image_dataset,
-        batch_size=1,
-        num_workers=2,
-        pin_memory=True,
-        shuffle=True,   
-    )
+        image_dataset = CityscapesDataset(**DATASET)
+        image_dataset.set_phase("val", valset)
+        dataloader = DataLoader(
+            image_dataset,
+            batch_size=1,
+            num_workers=2,
+            pin_memory=True,
+            shuffle=True,   
+        )
+    else:
+        testset = TestDataset(PATHS["test_root_path"])
+
+        image_dataset = CityscapesDataset(**DATASET)
+        image_dataset.set_phase("test", testset)
+        dataloader = DataLoader(
+            image_dataset,
+            batch_size=1,
+            num_workers=2,
+            pin_memory=True,
+            shuffle=True,   
+        )
 
     if MODEL["mode"] == "UNET":
         model = UnetResNet(encoder_name=MODEL["backbone"], 
@@ -74,17 +87,17 @@ if __name__ == "__main__":
     model.load_state_dict(state["state_dict"])
 
     if EVAL["apply_tta"]:
-        TTAModel = TTAWrapper(model, 
-                              merge_mode="mean", 
-                              activate=EVAL["activate"])
+        TTAModel = TTAWrapper(model, merge_mode="mean")
 
-    meter = Meter(base_threshold=EVAL["base_threshold"])
+    if not EVAL["test_mode"]:
+        meter = Meter(base_threshold=EVAL["base_threshold"])
 
+    images_path = EVAL["eval_images_path"] if not EVAL["test_mode"] else EVAL["test_images_path"]
     try:
-        shutil.rmtree(EVAL["eval_images_path"])
+        shutil.rmtree(images_path)
     except:
         pass
-    os.mkdir(EVAL["eval_images_path"])
+    os.mkdir(images_path)
 
     start = time.time()
     for batch in tqdm(dataloader):
@@ -95,23 +108,26 @@ if __name__ == "__main__":
             outputs = TTAModel(images)
         else:
             outputs = model(images)
-            if EVAL["activate"]:
-                outputs = torch.sigmoid(outputs)
+        if EVAL["activate"]:
+            outputs = torch.sigmoid(outputs)
         if EVAL["resize"]:
-            outputs = torch.nn.functional.interpolate(outputs, size=(1024, 2048), mode='bilinear', align_corners=True)
+            outputs = torch.nn.functional.interpolate(outputs, size=DATASET["orig_size"], mode='bilinear', align_corners=True)
 
         outputs = outputs.detach().cpu()
-        meter.update("val", targets, outputs)
+        if not EVAL["test_mode"]:
+            meter.update("val", targets, outputs)
 
         # dump predictions as images
         outputs = (outputs > EVAL["base_threshold"]).int() # thresholding
         outputs = outputs.squeeze().permute(1, 2, 0).numpy()
-        pic = image_dataset.label_encoder.class2color(outputs, mode="catId" if CITYSCAPES_DATASET["train_on_cats"] else "trainId")
+        pic = image_dataset.label_encoder.class2color(outputs, mode="catId" if DATASET["train_on_cats"] else "trainId")
         pred_name = "_".join(image_id[0].split("_")[:-1]) + "_predicted_mask.png"
-        cv2.imwrite(os.path.join(EVAL["eval_images_path"], pred_name), pic)
+        cv2.imwrite(os.path.join(images_path, pred_name), pic)
 
     torch.cuda.empty_cache()
-    dices, iou = meter.get_metrics("val")
-
-    print("***** Prediction done in {} sec.; IoU: {}, Dice: {} ***** \n(total elapsed time: {} sec.) ".\
-            format(int(time.time()-start), iou, dices[0], int(time.time()-global_start)))
+    if not EVAL["test_mode"]:
+        dices, iou = meter.get_metrics("val")
+        print("***** Prediction done in {} sec.; IoU: {}, Dice: {} ***** \n(total elapsed time: {} sec.) ".\
+                format(int(time.time()-start), iou, dices[0], int(time.time()-global_start)))
+    else:
+        print("Prediction on test set finished!")

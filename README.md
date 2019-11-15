@@ -28,8 +28,9 @@ To do:
  - add distillation to train smaller network (??);  
 
 In progress:  
+ - retraine one of the networks with sigmoid activation at the end and .5 threshold;  
  - add post-processing - for README visualizations;  
- - make predictions on random sample of test set on eval phase;  
+ - make predictions on the hold-out test set in separate script;  
  - get validation statistics for each class;  
 
 Done:
@@ -47,7 +48,11 @@ Done:
 - add tensorboard logs;  
 
 
-Logs:  
+#### Logs:  
 ```
 tensorboard --logdir /samsung_drive/semantic_segmentation/tests/tensorboard
 ```  
+#### Links: 
+
+On logits vs activations: https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31;  
+

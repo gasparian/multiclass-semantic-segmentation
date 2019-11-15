@@ -133,7 +133,7 @@ class BCEDiceLoss:
     """
 
     def __init__(self, bce_weight=1., weight=None, eps=1e-7, 
-                 smooth=1., class_weights=[], threshold=0., activate=False):
+                 smooth=.0, class_weights=[], threshold=0., activate=False):
 
         self.bce_weight = bce_weight
         self.eps = eps
@@ -151,7 +151,6 @@ class BCEDiceLoss:
             if self.activate:
                 logits = torch.sigmoid(logits)
             logits = (logits > self.threshold).float()
-            # TO DO: vectorize the code below
             for c in range(num_classes):
                 iflat = logits[:, c,...].view(batch_size, -1)
                 tflat = true[:, c,...].view(batch_size, -1)
@@ -176,6 +175,7 @@ class Trainer(object):
 
         for k, v in kwargs.items():
             setattr(self, k, v)
+        self.possible_phases = ["train", "val", "test"]
 
         # Initialize logger
         logging.basicConfig(
@@ -299,6 +299,10 @@ class Trainer(object):
 
     def iterate(self, epoch, phase, data_set):
         """main method for traning: creates metric aggregator, dataloaders and updates the model params"""
+
+        if phase not in self.possible_phases:
+            raise ValueError('Phase type must be on of: {}'.format(self.possible_phases))
+
         self.meter.reset_dicts()
         start = time.strftime("%H:%M:%S")
         logging.info(f"Starting epoch: {epoch} | phase: {phase} | time: {start}")

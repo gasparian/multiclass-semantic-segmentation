@@ -1,14 +1,18 @@
-TRAIN_DATASET:
+PATHS:
+  dataset: "cityscapes" # cityscapes or kitti 
   path_masks: "./data/cityscapes/gtFine/gtFine"
   path_img: "./data/cityscapes/leftImg8bit"
   train_root_path: "./data/cityscapes/leftImg8bit/train"
+  test_root_path: "./data/cityscapes/leftImg8bit/test"
   val_cities: ["ulm", "bremen", "aachen"]
 
-CITYSCAPES_DATASET:
+DATASET:
   hard_augs: False
+  orig_size: [1024, 2048]
   resize: [256, 512]
   select_classes: []
   train_on_cats: True # Must be False if select_classes is not empty
+  mode: "lane" # lane or road in case of kitti dataset
 
 MODEL:
   mode: "FPN" # UNET or FPN
@@ -36,10 +40,13 @@ TRAINING:
   scheduler_patience: 3
 
 EVAL:
+  test_mode: False
   model_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/best_model.pth"
   eval_images_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/eval_images"
+  test_images_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/test_images"
   device: "cuda:0" # cpu or cuda
   resize: True
   apply_tta: True
   activate: False
   base_threshold: 0.
+  

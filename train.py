@@ -29,9 +29,9 @@ globals().update(config)
 
 if __name__ == "__main__":
 
-    train_dataset = TrainDataset(**TRAIN_DATASET)
+    train_dataset = TrainDataset(**PATHS)
     trainset, valset = train_dataset.get_paths()
-    image_dataset = CityscapesDataset(**CITYSCAPES_DATASET)
+    image_dataset = CityscapesDataset(**DATASET)
 
     if MODEL["mode"] == "UNET":
         model = UnetResNet(encoder_name=MODEL["backbone"], 

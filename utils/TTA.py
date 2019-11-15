@@ -43,8 +43,6 @@ class TTAWrapper(nn.Module):
         for image in images:
             augmented = transform(image)
             aug_prediction = self.model(augmented)
-            if self.activate:
-                aug_prediction = torch.sigmoid(aug_prediction)
             aug_prediction = inv_transform(aug_prediction)
             
             if self.merge_mode == "mean":

@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 import pandas as pd
-import cv2
 
 from torch.utils.data import Dataset
 from albumentations import HorizontalFlip, RandomCrop, Resize, \
@@ -118,7 +117,6 @@ class TrainDataset:
 
     def __init__(self, path_masks, path_img, train_root_path, val_cities=["ulm", "bremen", "aachen"]):
         self.path_masks = path_masks
-        self.path_img = path_img
         self.train_root_path = train_root_path
         self.val_cities = val_cities
 
@@ -136,7 +134,7 @@ class TrainDataset:
             
             for name in all_names:
                 datasets.append((
-                    os.path.join(self.path_img, "train", name+"_leftImg8bit.png"), 
+                    os.path.join(self.train_root_path, name+"_leftImg8bit.png"), 
                     os.path.join(self.path_masks, "train", name+"_gtFine_labelIds.png")
                 ))
                 
@@ -144,10 +142,26 @@ class TrainDataset:
         np.random.shuffle(val_dataset)
         return train_dataset, val_dataset
 
+def TestDataset(test_root_path):
+
+    """
+    returns paths for hold-out test images
+    """
+        
+    cities = os.listdir(test_root_path)
+    dataset = []
+
+    for city in cities:
+        names = os.listdir(os.path.join(test_root_path, city))        
+        dataset.extend([os.path.join(test_root_path, name) for name in names])
+            
+    return dataset
+
 class CityscapesDataset(Dataset):
     
-    def __init__(self, hard_augs=False, resize=None, train_on_cats=True, select_classes=[]):
-        self.orig_h, self.orig_w = 1024, 2048
+    def __init__(self, hard_augs=False, resize=None, train_on_cats=True, 
+                 select_classes=[], mode=None, orig_size=(1024, 2048)):
+        self.orig_h, self.orig_w = orig_size
         self.h, self.w = self.orig_h, self.orig_w
         self.resize = resize
         if self.resize is not None:
@@ -164,12 +178,15 @@ class CityscapesDataset(Dataset):
         self.mean=[0.485, 0.456, 0.406]
         self.std=[0.229, 0.224, 0.225]
         self.final_resizing = Resize(self.h, self.w, interpolation=4, p=1.0)
+        self.possible_phases = ["train", "val", "test"]
 
     def set_phase(self, phase, data_set):
         """
         must called after init or to swap training phase 
         """
         self.phase = phase
+        if phase not in self.possible_phases:
+            raise ValueError('Phase type must be on of: {}'.format(self.possible_phases))
         self.data_set = data_set
         self.transformer = self.get_transforms()
         
@@ -208,13 +225,20 @@ class CityscapesDataset(Dataset):
     def __getitem__(self, idx):
         image_id = self.data_set[idx]    
         img = open_img(image_id[0])
-        labelIds = open_img(image_id[1])
-        mask = self.label_encoder.make_ohe(labelIds, mode="catId" if self.train_on_cats else "trainId")
-        img, mask = self.transformer(image=img, mask=mask).values()
+        if self.phase != "test":
+            labelIds = open_img(image_id[1])
+            mask = self.label_encoder.make_ohe(labelIds, mode="catId" if self.train_on_cats else "trainId")
+            img, mask = self.transformer(image=img, mask=mask).values()
+        else:
+            img = self.transformer(image=img)["image"]
         if self.resize is not None:
             img = self.final_resizing(image=img)["image"]
-        img, mask = ToTensor()(image=img, mask=mask).values()
-        mask = mask[0].permute(2, 0, 1) # N_CLASSESxHxW
+        if self.phase != "test":
+            img, mask = ToTensor()(image=img, mask=mask).values()
+            mask = mask[0].permute(2, 0, 1) # N_CLASSESxHxW
+        else:
+            img = ToTensor()(image=img)["image"]
+            mask = None
         return img, mask, image_id[0].split("/")[-1]
 
     def __len__(self):
