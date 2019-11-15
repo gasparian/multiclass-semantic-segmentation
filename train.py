@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from utils import TrainDataset, LabelEncoder, CityscapesDataset, KittiLaneDataset, \
+from utils import CityscapesTrainDataset, LabelEncoder, CityscapesDataset, KittiLaneDataset, \
                   Trainer, Meter, UnetResNet, FPN, load_train_config
 
 warnings.filterwarnings("ignore")
@@ -29,7 +29,7 @@ globals().update(config)
 
 if __name__ == "__main__":
 
-    train_dataset = TrainDataset(**PATHS)
+    train_dataset = CityscapesTrainDataset(**PATHS)
     trainset, valset = train_dataset.get_paths()
     image_dataset = CityscapesDataset(**DATASET)
 

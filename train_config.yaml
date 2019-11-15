@@ -1,5 +1,6 @@
+TARGET: "cityscapes" # cityscapes or kitti 
+
 PATHS:
-  dataset: "cityscapes" # cityscapes or kitti 
   path_masks: "./data/cityscapes/gtFine/gtFine"
   path_img: "./data/cityscapes/leftImg8bit"
   test_root_path: "./data/cityscapes/leftImg8bit/test"
@@ -10,12 +11,12 @@ PATHS:
 
   # Args for Kitti dataset only
   val_frac: 0.2
-  mode: "lane" # lane or road in case of kitti dataset
+  mode: "lane" # lane or road in case of kitti-lanes dataset
 
 DATASET:
   hard_augs: False
   orig_size: [1024, 2048]
-  resize: [256, 512]
+  resize: [512, 1024] # or []
   select_classes: []
   train_on_cats: True # Must be False if select_classes is not empty
 
@@ -26,9 +27,9 @@ MODEL:
   unet_res_blocks_decoder: False # adds residual blocks inside decoder --> net become heavier 
 
 TRAINING:  
-  model_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize"
-  # load_checkpoint: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/last_model.pth"
-  load_checkpoint: ""
+  model_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize"
+  load_checkpoint: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/last_model.pth"
+  # load_checkpoint: ""
   weights_decay: 0.0
   batch_size: 8
   accumulation_batches: 1
@@ -46,12 +47,15 @@ TRAINING:
 
 EVAL:
   test_mode: False
-  model_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/best_model.pth"
-  eval_images_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/eval_images"
-  test_images_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/test_images"
+  model_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize/best_model.pth"
+  eval_images_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize/eval_images"
+  test_images_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize/test_images"
   device: "cuda:0" # cpu or cuda
-  resize: True
   apply_tta: True
+
   activate: False
-  base_threshold: 0.
+  base_threshold: 0.0
+
+  # activate: True
+  # base_threshold: 0.5
   

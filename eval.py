@@ -13,8 +13,8 @@ import cv2
 import torch
 from torch.utils.data import DataLoader
 
-from utils import Meter, UnetResNet, FPN, TTAWrapper, load_train_config, TestDataset, \
-                  LabelEncoder, TrainDataset, CityscapesDataset, post_process, KittiLaneDataset
+from utils import Meter, UnetResNet, FPN, TTAWrapper, load_train_config, CityscapesTestDataset, \
+                  LabelEncoder, CityscapesTrainDataset, CityscapesDataset, post_process, KittiLaneDataset
 
 warnings.filterwarnings("ignore")
 seed = 69
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     global_start = time.time()
 
     if not EVAL["test_mode"]:
-        train_dataset = TrainDataset(**PATHS)
+        train_dataset = CityscapesTrainDataset(**PATHS)
         trainset, valset = train_dataset.get_paths()
 
         image_dataset = CityscapesDataset(**DATASET)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
             shuffle=True,   
         )
     else:
-        testset = TestDataset(PATHS["test_root_path"])
+        testset = CityscapesTestDataset(PATHS["test_root_path"])
 
         image_dataset = CityscapesDataset(**DATASET)
         image_dataset.set_phase("test", testset)
@@ -110,7 +110,7 @@ if __name__ == "__main__":
             outputs = model(images)
         if EVAL["activate"]:
             outputs = torch.sigmoid(outputs)
-        if EVAL["resize"]:
+        if DATASET["resize"]:
             outputs = torch.nn.functional.interpolate(outputs, size=DATASET["orig_size"], mode='bilinear', align_corners=True)
 
         outputs = outputs.detach().cpu()
@@ -130,4 +130,5 @@ if __name__ == "__main__":
         print("***** Prediction done in {} sec.; IoU: {}, Dice: {} ***** \n(total elapsed time: {} sec.) ".\
                 format(int(time.time()-start), iou, dices[0], int(time.time()-global_start)))
     else:
-        print("Prediction on test set finished!")
+        print("***** Prediction on test set done in {} sec. ***** \n(total elapsed time: {} sec.) ".\
+                format(int(time.time()-start), int(time.time()-global_start)))

@@ -13,7 +13,7 @@ from albumentations.pytorch import ToTensor
 from .utils import open_img
 from .cityscapes_utils import CityscapesDataset
 
-class TrainDataset:
+class KittiTrainDataset:
 
     """
     returns paths for train and validation annotated pairs
@@ -56,20 +56,30 @@ class TrainDataset:
 class KittiLaneLabelEncoder:
 
     def __init__(self):
-        raise NotImplementedError
+        self.label_color = {
+            1: (128, 64,128), # road; color from Cityscapes color-scheme
+            0: (0, 0, 0) # background
+        }
 
-    def make_ohe(self, labelIds):
-        raise NotImplementedError
+    def encode(self, labels):
+        """ 3-channel binary mask --> 1-channel binary mask """
+        labels = (labels[..., 0] / 255).astype(int)
+        return labels[..., np.newaxis]
 
-    def inverse_ohe(self, ohe_labels):
-        raise NotImplementedError
-
-    def class2color(self, ohe_labels):
-        raise NotImplementedError
+    def class2color(self, labels):
+        """ 1-channel binary mask --> 3-channel image """
+        colored_labels = np.zeros(labels.shape[:2] + (3,)).astype(np.uint8)
+        for cls in range(2):
+            color = self.label_color[cls]
+            ys, xs = np.where(labels)
+            colored_labels[ys, xs, :] = color
+        return colored_labels
 
 class KittiLaneDataset(CityscapesDataset):
 
-    def __init__(self, hard_augs=False, resize=None, select_classes=[], orig_size=(1024, 2048)):
+    def __init__(self, hard_augs=False, resize=None, select_classes=[], 
+                 orig_size=(1024, 2048), train_on_cats=None):
+
         super().__init__(hard_augs, resize, select_classes, orig_size)
         self.label_encoder = KittiLaneLabelEncoder()
 
@@ -78,7 +88,7 @@ class KittiLaneDataset(CityscapesDataset):
         img = open_img(image_id[0])
         if self.phase != "test":
             labelIds = open_img(image_id[1])
-            mask = self.label_encoder.make_ohe(labelIds)
+            mask = self.label_encoder.encode(labelIds)
             img, mask = self.transformer(image=img, mask=mask).values()
         else:
             img = self.transformer(image=img)["image"]

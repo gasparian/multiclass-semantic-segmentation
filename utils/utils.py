@@ -55,18 +55,4 @@ def load_train_config(path="train_config.yaml"):
     with open(path) as f:
         data = yaml.load(f)
     return data
-
-def TestDataset(test_root_path):
-
-    """
-    returns paths for hold-out test images
-    """
-        
-    cities = os.listdir(test_root_path)
-    dataset = []
-
-    for city in cities:
-        names = os.listdir(os.path.join(test_root_path, city))        
-        dataset.extend([os.path.join(test_root_path, name) for name in names])
-            
-    return dataset
+    
