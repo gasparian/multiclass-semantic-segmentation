@@ -1,15 +1,19 @@
 TARGET: "cityscapes" # cityscapes or kitti 
 
 PATHS:
+  # Args for Cityscapes dataset
   path_masks: "./data/cityscapes/gtFine/gtFine"
   path_img: "./data/cityscapes/leftImg8bit"
   test_root_path: "./data/cityscapes/leftImg8bit/test"
-  
-  # Args for Cityscapes dataset only
+
   val_cities: ["ulm", "bremen", "aachen"] # for cityscapes only
   train_root_path: "./data/cityscapes/leftImg8bit/train"
 
-  # Args for Kitti dataset only
+  # Args for Kitti dataset
+  # path_masks: "./data/kitti/data_road/training/gt_image_2"
+  # path_img: "./data/kitti/data_road/training/image_2"
+  # test_root_path: "./data/kitti/data_road/testing/image_2"
+
   val_frac: 0.2
   mode: "lane" # lane or road in case of kitti-lanes dataset
 
