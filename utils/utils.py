@@ -57,19 +57,14 @@ class DropClusters:
 
     @classmethod
     def filt_invert(self, mask):
-        filtered = self.filt(mask)
-        inverse_mask = invert_mask(filtered)
-        return inverse_mask
-
-    @classmethod
-    def filt(self, mask):
         num_component, component = cv2.connectedComponents(mask.astype(np.uint8))
         predictions = np.zeros(mask.shape[:2], np.int)
         for c in range(1, num_component):
             p = (component == c)
             if p.sum() > self.min_size:
                 predictions[p] = 1
-        return predictions
+        inverse_mask = invert_mask(predictions)
+        return inverse_mask
 
 def load_train_config(path="train_config.yaml"):
     with open(path) as f:
