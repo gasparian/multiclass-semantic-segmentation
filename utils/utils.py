@@ -51,10 +51,15 @@ class DropClusters:
     @classmethod
     def drop(self, mask, min_size=50*50):
         self.min_size = min_size
+        for i in range(2):
+            mask = self.filt_invert(mask)
+        return mask
+
+    @classmethod
+    def filt_invert(self, mask):
         filtered = self.filt(mask)
         inverse_mask = invert_mask(filtered)
-        filtered = self.filt(inverse_mask)
-        return invert_mask(filtered)
+        return inverse_mask
 
     @classmethod
     def filt(self, mask):
