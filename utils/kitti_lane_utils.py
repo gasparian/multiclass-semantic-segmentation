@@ -10,7 +10,7 @@ from albumentations import HorizontalFlip, RandomCrop, Resize, \
                            Normalize, Resize, Compose, OneOf
 from albumentations.pytorch import ToTensor
 
-from .utils import open_img
+from .utils import open_img, DropClusters
 from .cityscapes_utils import CityscapesDataset
 
 class KittiTrainDataset:
@@ -66,23 +66,22 @@ def KittiTestDataset(test_root_path):
 class KittiLaneLabelEncoder:
 
     def __init__(self):
-        self.label_color = {
-            1: (128, 64,128), # road; color from Cityscapes color-scheme
-            0: (0, 0, 0) # background
-        }
+        self.label_color = (128, 64,128) # road; color from Cityscapes color-scheme
 
     def encode(self, labels):
         """ 3-channel binary mask --> 1-channel binary mask """
         labels = (labels[..., 0] / 255).astype(int)
         return labels[..., np.newaxis]
 
-    def class2color(self, labels):
+    def class2color(self, labels, clean_up_clusters=0):
         """ 1-channel binary mask --> 3-channel image """
+        clean_up_clusters *= clean_up_clusters # create an area
         colored_labels = np.zeros(labels.shape[:2] + (3,)).astype(np.uint8)
-        for cls in range(2):
-            color = self.label_color[cls]
-            ys, xs = np.where(labels)
-            colored_labels[ys, xs, :] = color
+        labels = np.squeeze(labels)
+        if clean_up_clusters > 0:
+            labels = DropClusters.drop(labels, min_size=clean_up_clusters)
+        ys, xs = np.where(labels)
+        colored_labels[ys, xs, :] = self.label_color
         return colored_labels
 
 class KittiLaneDataset(CityscapesDataset):

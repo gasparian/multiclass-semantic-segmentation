@@ -13,8 +13,8 @@ import cv2
 import torch
 from torch.utils.data import DataLoader
 
-from utils import Meter, UnetResNet, FPN, TTAWrapper, load_train_config, CityscapesTestDataset, \
-                  LabelEncoder, CityscapesTrainDataset, CityscapesDataset, drop_clusters, KittiLaneDataset
+from utils import Meter, UnetResNet, FPN, TTAWrapper, load_train_config, CityscapesTestDataset, torch2np, \
+                  LabelEncoder, CityscapesTrainDataset, CityscapesDataset, KittiLaneDataset
 
 warnings.filterwarnings("ignore")
 seed = 69
@@ -119,10 +119,9 @@ if __name__ == "__main__":
 
         # dump predictions as images
         outputs = (outputs > EVAL["base_threshold"]).int() # thresholding
-        outputs = outputs.squeeze().permute(1, 2, 0).numpy()
-        if EVAL["drop_clusters"] > 0:
-            outputs = drop_clusters(outputs, min_size=EVAL["drop_clusters"]*EVAL["drop_clusters"])
-        pic = image_dataset.label_encoder.class2color(outputs, mode="catId" if DATASET["train_on_cats"] else "trainId")
+        outputs = torch2np(outputs)
+        pic = image_dataset.label_encoder.class2color(outputs, clean_up_clusters=EVAL["drop_clusters"],
+                                                      mode="catId" if DATASET["train_on_cats"] else "trainId")
         pred_name = "_".join(image_id[0].split("_")[:-1]) + "_predicted_mask.png"
         cv2.imwrite(os.path.join(images_path, pred_name), pic)
 

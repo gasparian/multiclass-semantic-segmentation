@@ -38,28 +38,39 @@ def get_encoder(model, pretrained=True):
 
     return encoder, filters_dict[model]
 
-def drop_clusters(masks, min_size=50*50):
+def invert_mask(mask):
+    return np.bitwise_not(mask.astype(bool)).astype(int)
+
+class DropClusters:
     '''
     Post processing of each predicted mask, 
     components with lesser number of pixels 
     than `min_size` are ignored
     '''
-    if masks.ndim < 3:
-        masks = masks[..., np.newaxis]
-    predictions = np.zeros(masks.shape, np.float32)
-    for ch in range(masks.shape[-1]):
-        mask = masks[..., ch]
+
+    @classmethod
+    def drop(self, mask, min_size=50*50):
+        self.min_size = min_size
+        filtered = self.filt(mask)
+        inverse_mask = invert_mask(filtered)
+        filtered = self.filt(inverse_mask)
+        return invert_mask(filtered)
+
+    @classmethod
+    def filt(self, mask):
         num_component, component = cv2.connectedComponents(mask.astype(np.uint8))
-        prediction = np.zeros(mask.shape, np.float32)
+        predictions = np.zeros(mask.shape[:2], np.int)
         for c in range(1, num_component):
             p = (component == c)
-            if p.sum() > min_size:
-                prediction[p] = 1
-        predictions[..., ch] = prediction
-    return predictions
+            if p.sum() > self.min_size:
+                predictions[p] = 1
+        return predictions
 
 def load_train_config(path="train_config.yaml"):
     with open(path) as f:
         data = yaml.load(f)
     return data
-    
+
+def torch2np(outputs):
+    outputs = outputs.squeeze(0).permute(1, 2, 0).numpy()
+    return outputs

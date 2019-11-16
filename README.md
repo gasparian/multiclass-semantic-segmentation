@@ -29,10 +29,12 @@ To do:
  - add distillation to train smaller network (??);  
 
 In progress:  
- - add post-processing into the `labels2color` - for README visualizations;  
+ - test training and prediction on kitti dataset;  
  - get validation statistics for each class;  
 
-Done:
+Done:  
+- add an inverse mask to connected components filtering;  
+- add post-processing into the `labels2color` - for README visualizations;  
 - make propper binary segmentation - masks with only one channel (LabelEncoder - make_ohe & class2color);  
 - retraine one of the networks with sigmoid activation at the end and .5 threshold;  
 - implement KittiLaneLabelEncoder;  

@@ -10,7 +10,7 @@ from albumentations import HorizontalFlip, RandomCrop, Resize, \
                            Normalize, Resize, Compose, OneOf
 from albumentations.pytorch import ToTensor
 
-from .utils import open_img
+from .utils import open_img, DropClusters, invert_mask
 
 class LabelEncoder:
 
@@ -100,17 +100,20 @@ class LabelEncoder:
         inverse_ohe_img = np.repeat(inverse_ohe_img, 3, axis=2).astype(int)
         return inverse_ohe_img
 
-    def class2color(self, ohe_labels, mode="catId"):
+    def class2color(self, ohe_labels, mode="catId", clean_up_clusters=0):
         """
         converts multiclass mask to (R,G,B) color mask
         mode : `catId` or `trainId`
         """
+        clean_up_clusters *= clean_up_clusters # create an area
         if ohe_labels.shape[-1] == 1:
-            ohe_labels = np.concatenate([ohe_labels, np.bitwise_not(ohe_labels.astype(bool)).astype(int)], axis=2)
+            ohe_labels = np.concatenate([ohe_labels, invert_mask(ohe_labels)], axis=2)
 
         colored_labels = np.zeros(ohe_labels.shape[:2] + (3,)).astype(np.uint8)
         for ch in range(ohe_labels.shape[-1]):
             color = self.cityscapes_labels_df[self.cityscapes_labels_df[mode] == ch]["color"].iloc[0]
+            if clean_up_clusters > 0:
+                ohe_labels[..., ch] = DropClusters.drop(ohe_labels[..., ch], min_size=clean_up_clusters)
             ys, xs = np.where(ohe_labels[..., ch])
             colored_labels[ys, xs, :] = color
         return colored_labels

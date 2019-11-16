@@ -18,7 +18,7 @@ PATHS:
 DATASET:
   hard_augs: False # add random snow / rain / fog
   orig_size: [1024, 2048]
-  resize: [256, 512] # or []
+  resize: [512, 1024] # or []
   select_classes: ["road"]
   train_on_cats: False # Must be False if select_classes is not empty
 
@@ -29,9 +29,9 @@ MODEL:
   unet_res_blocks_decoder: False # adds residual blocks inside decoder --> net become heavier 
 
 TRAINING:  
-  model_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_road"
-  # load_checkpoint: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/last_model.pth"
-  load_checkpoint: ""
+  model_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize_road"
+  load_checkpoint: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_road/last_model.pth"
+  # load_checkpoint: ""
   weights_decay: 0.0
   batch_size: 10
   accumulation_batches: 1
@@ -39,7 +39,7 @@ TRAINING:
   load_optimizer_state: False
   lr: 0.001
   num_epochs: 40
-  devices_ids: [0]
+  devices_ids: [0, 1]
   key_metric: "dice"
   base_threshold: .0
   activate: False
@@ -49,16 +49,17 @@ TRAINING:
 
 EVAL:
   test_mode: False
-  model_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_road/best_model.pth"
-  eval_images_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_road/eval_images"
-  test_images_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_road/test_images"
+  model_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize_road/best_model.pth"
+  eval_images_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize_road/eval_images"
+  test_images_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize_road/test_images"
   device: "cuda:0" # cpu or cuda
   apply_tta: True
-  drop_clusters: 50 # if <= 0 --> doesn't apply
 
   activate: False
   base_threshold: 0.0
 
   # activate: True
   # base_threshold: 0.5
+
+  drop_clusters: 70 # no. pixels on one side; if <= 0 --> doesn't apply
   
