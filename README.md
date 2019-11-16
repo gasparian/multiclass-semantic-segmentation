@@ -25,15 +25,17 @@ Experiments plan:
         https://github.com/irfanICMLL/structure_knowledge_distillation
 
 To do:  
+ - calculate number of parameters of used networks;  
  - add distillation to train smaller network (??);  
 
 In progress:  
- - implement KittiLaneLabelEncoder;  
- - retraine one of the networks with sigmoid activation at the end and .5 threshold;  
- - add post-processing - for README visualizations;  
+ - add post-processing into the `labels2color` - for README visualizations;  
  - get validation statistics for each class;  
 
 Done:
+- make propper binary segmentation - masks with only one channel (LabelEncoder - make_ohe & class2color);  
+- retraine one of the networks with sigmoid activation at the end and .5 threshold;  
+- implement KittiLaneLabelEncoder;  
 - test yaml configs;  
 - make predictions on the hold-out test set in separate script;  
 - add yaml config to eval script;  

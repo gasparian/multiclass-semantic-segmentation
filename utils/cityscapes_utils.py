@@ -66,6 +66,7 @@ class LabelEncoder:
             for i, j in enumerate(selected):
                 self.cityscapes_labels_df.loc[self.cityscapes_labels_df["id"] == j, "trainId"] = i
         self.classes = self.cityscapes_labels_df["trainId"].unique()
+        self.classes.sort() # in-place labels ascending sort
 
     def make_ohe(self, labelIds, mode="catId"):
         """
@@ -76,6 +77,9 @@ class LabelEncoder:
         classes = self.categories
         if mode == "trainId":
             classes = self.classes
+
+        if len(classes) == 2:
+            classes = [0]
 
         for unique in np.unique(labelIds):
             labelIds[labelIds == unique] = self.cityscapes_labels_df[self.cityscapes_labels_df["id"] == unique][mode]
@@ -88,7 +92,7 @@ class LabelEncoder:
         return ohe_labels.astype(int)
 
     def inverse_ohe(self, ohe_labels):
-        """converts one-hot encoded mask to the 3-ch multiclass mask"""
+        """converts one-hot encoded mask to the multiclass mask"""
         inverse_ohe_img = np.zeros(ohe_labels.shape[:2]+(1,))
         for ch in range(ohe_labels.shape[-1]):
             ys, xs = np.where(ohe_labels[..., ch])
@@ -101,6 +105,9 @@ class LabelEncoder:
         converts multiclass mask to (R,G,B) color mask
         mode : `catId` or `trainId`
         """
+        if ohe_labels.shape[-1] == 1:
+            ohe_labels = np.concatenate([ohe_labels, np.bitwise_not(ohe_labels.astype(bool)).astype(int)], axis=2)
+
         colored_labels = np.zeros(ohe_labels.shape[:2] + (3,)).astype(np.uint8)
         for ch in range(ohe_labels.shape[-1]):
             color = self.cityscapes_labels_df[self.cityscapes_labels_df[mode] == ch]["color"].iloc[0]
@@ -116,8 +123,7 @@ class CityscapesTrainDataset:
     """
 
     def __init__(self, path_masks, path_img, train_root_path,
-                 val_cities=["ulm", "bremen", "aachen"], 
-                 test_root_path=None, mode=None, val_frac=None):
+                 val_cities=["ulm", "bremen", "aachen"], test_root_path=None):
 
         self.path_masks = path_masks
         self.train_root_path = train_root_path

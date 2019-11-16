@@ -14,7 +14,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from utils import Meter, UnetResNet, FPN, TTAWrapper, load_train_config, CityscapesTestDataset, \
-                  LabelEncoder, CityscapesTrainDataset, CityscapesDataset, post_process, KittiLaneDataset
+                  LabelEncoder, CityscapesTrainDataset, CityscapesDataset, drop_clusters, KittiLaneDataset
 
 warnings.filterwarnings("ignore")
 seed = 69
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     global_start = time.time()
 
     if not EVAL["test_mode"]:
-        train_dataset = CityscapesTrainDataset(**PATHS)
+        train_dataset = CityscapesTrainDataset(**PATHS["CITYSCAPES"])
         trainset, valset = train_dataset.get_paths()
 
         image_dataset = CityscapesDataset(**DATASET)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
             shuffle=True,   
         )
     else:
-        testset = CityscapesTestDataset(PATHS["test_root_path"])
+        testset = CityscapesTestDataset(PATHS["CITYSCAPES"]["test_root_path"])
 
         image_dataset = CityscapesDataset(**DATASET)
         image_dataset.set_phase("test", testset)
@@ -120,6 +120,8 @@ if __name__ == "__main__":
         # dump predictions as images
         outputs = (outputs > EVAL["base_threshold"]).int() # thresholding
         outputs = outputs.squeeze().permute(1, 2, 0).numpy()
+        if EVAL["drop_clusters"] > 0:
+            outputs = drop_clusters(outputs, min_size=EVAL["drop_clusters"]*EVAL["drop_clusters"])
         pic = image_dataset.label_encoder.class2color(outputs, mode="catId" if DATASET["train_on_cats"] else "trainId")
         pred_name = "_".join(image_id[0].split("_")[:-1]) + "_predicted_mask.png"
         cv2.imwrite(os.path.join(images_path, pred_name), pic)

@@ -163,6 +163,17 @@ class BCEDiceLoss:
 
         return loss
 
+def fix_multigpu_chkpt_names(state_dict, drop=False):
+    """ fix the DataParallel caused problem with keys names """
+    new_state_dict = {}
+    for k in state_dict:
+        if drop:
+            new_k = re.sub("module.", "", k)
+        else:
+            new_k = "module." + k
+        new_state_dict[new_k] = copy.deepcopy(state_dict[k])
+    return new_state_dict
+
 class Trainer(object):
     
     '''Basic functionality for models fitting'''
@@ -238,16 +249,16 @@ class Trainer(object):
         self.start_epoch = chkpt['epoch']
         self.best_metric = chkpt['best_metric']
 
+        # fix the DataParallel caused problem with keys names
         if self.multi_gpu_flag:
-            # fix the DataParallel caused problem with keys names
-            new_state_dict = {}
-            for k in chkpt["state_dict"]:
-                #new_k = re.sub("module.", "", k)
-                new_k = "module." + k
-                new_state_dict[new_k] = copy.deepcopy(chkpt["state_dict"][k])
+            new_state_dict = fix_multigpu_chkpt_names(chkpt['state_dict'], drop=False)
             self.net.load_state_dict(new_state_dict)
         else:
-            self.net.load_state_dict(chkpt['state_dict'])
+            try:
+                self.net.load_state_dict(chkpt['state_dict'])
+            except:
+                new_state_dict = fix_multigpu_chkpt_names(chkpt['state_dict'], drop=True)
+                self.net.load_state_dict(new_state_dict)
 
         if self.load_optimizer_state:
             self.optimizer.load_state_dict(chkpt['optimizer'])

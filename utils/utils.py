@@ -38,17 +38,24 @@ def get_encoder(model, pretrained=True):
 
     return encoder, filters_dict[model]
 
-def post_process(mask, min_size):
+def drop_clusters(masks, min_size=50*50):
     '''
-    Post processing of each predicted mask, components 
-    with lesser number of pixels than `min_size` are ignored
+    Post processing of each predicted mask, 
+    components with lesser number of pixels 
+    than `min_size` are ignored
     '''
-    num_component, component = cv2.connectedComponents(mask.astype(np.uint8))
-    predictions = np.zeros(mask.shape[:2], np.float32)
-    for c in range(1, num_component):
-        p = (component == c)
-        if p.sum() > min_size:
-            predictions[p] = 1
+    if masks.ndim < 3:
+        masks = masks[..., np.newaxis]
+    predictions = np.zeros(masks.shape, np.float32)
+    for ch in range(masks.shape[-1]):
+        mask = masks[..., ch]
+        num_component, component = cv2.connectedComponents(mask.astype(np.uint8))
+        prediction = np.zeros(mask.shape, np.float32)
+        for c in range(1, num_component):
+            p = (component == c)
+            if p.sum() > min_size:
+                prediction[p] = 1
+        predictions[..., ch] = prediction
     return predictions
 
 def load_train_config(path="train_config.yaml"):

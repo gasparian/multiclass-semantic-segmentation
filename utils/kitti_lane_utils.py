@@ -52,6 +52,16 @@ class KittiTrainDataset:
                 
         return train_dataset, val_dataset
 
+def KittiTestDataset(test_root_path):
+
+    """
+    returns paths for hold-out test images
+    """
+        
+    names = os.listdir(test_root_path)
+    dataset = [[os.path.join(test_root_path, name)] for name in names]
+            
+    return dataset
 
 class KittiLaneLabelEncoder:
 

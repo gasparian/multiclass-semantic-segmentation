@@ -29,7 +29,7 @@ globals().update(config)
 
 if __name__ == "__main__":
 
-    train_dataset = CityscapesTrainDataset(**PATHS)
+    train_dataset = CityscapesTrainDataset(**PATHS["CITYSCAPES"])
     trainset, valset = train_dataset.get_paths()
     image_dataset = CityscapesDataset(**DATASET)
 

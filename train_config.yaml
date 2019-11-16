@@ -1,47 +1,45 @@
 TARGET: "cityscapes" # cityscapes or kitti 
 
 PATHS:
-  # Args for Cityscapes dataset
-  path_masks: "./data/cityscapes/gtFine/gtFine"
-  path_img: "./data/cityscapes/leftImg8bit"
-  test_root_path: "./data/cityscapes/leftImg8bit/test"
-
-  val_cities: ["ulm", "bremen", "aachen"] # for cityscapes only
-  train_root_path: "./data/cityscapes/leftImg8bit/train"
-
-  # Args for Kitti dataset
-  # path_masks: "./data/kitti/data_road/training/gt_image_2"
-  # path_img: "./data/kitti/data_road/training/image_2"
-  # test_root_path: "./data/kitti/data_road/testing/image_2"
-
-  val_frac: 0.2
-  mode: "lane" # lane or road in case of kitti-lanes dataset
+  CITYSCAPES:
+    path_masks: "./data/cityscapes/gtFine/gtFine"
+    path_img: "./data/cityscapes/leftImg8bit"
+    test_root_path: "./data/cityscapes/leftImg8bit/test"
+    val_cities: ["ulm", "bremen", "aachen"] # for cityscapes only
+    train_root_path: "./data/cityscapes/leftImg8bit/train"
+    
+  KITTI:
+    path_masks: "./data/kitti/data_road/training/gt_image_2"
+    path_img: "./data/kitti/data_road/training/image_2"
+    test_root_path: "./data/kitti/data_road/testing/image_2"
+    val_frac: 0.2
+    mode: "lane" # lane or road in case of kitti-lanes dataset
 
 DATASET:
-  hard_augs: False
+  hard_augs: False # add random snow / rain / fog
   orig_size: [1024, 2048]
-  resize: [512, 1024] # or []
-  select_classes: []
-  train_on_cats: True # Must be False if select_classes is not empty
+  resize: [256, 512] # or []
+  select_classes: ["road"]
+  train_on_cats: False # Must be False if select_classes is not empty
 
 MODEL:
   mode: "FPN" # UNET or FPN
   backbone: "resnext50"
-  num_classes: 8
+  num_classes: 1
   unet_res_blocks_decoder: False # adds residual blocks inside decoder --> net become heavier 
 
 TRAINING:  
-  model_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize"
-  load_checkpoint: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/last_model.pth"
-  # load_checkpoint: ""
+  model_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_road"
+  # load_checkpoint: "/samsung_drive/semantic_segmentation/FPN_4x_downsize/last_model.pth"
+  load_checkpoint: ""
   weights_decay: 0.0
-  batch_size: 8
+  batch_size: 10
   accumulation_batches: 1
   freeze_n_iters: 0
   load_optimizer_state: False
   lr: 0.001
   num_epochs: 40
-  devices_ids: [0, 1]
+  devices_ids: [0]
   key_metric: "dice"
   base_threshold: .0
   activate: False
@@ -51,11 +49,12 @@ TRAINING:
 
 EVAL:
   test_mode: False
-  model_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize/best_model.pth"
-  eval_images_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize/eval_images"
-  test_images_path: "/samsung_drive/semantic_segmentation/FPN_2x_downsize/test_images"
+  model_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_road/best_model.pth"
+  eval_images_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_road/eval_images"
+  test_images_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_road/test_images"
   device: "cuda:0" # cpu or cuda
   apply_tta: True
+  drop_clusters: 50 # if <= 0 --> doesn't apply
 
   activate: False
   base_threshold: 0.0
