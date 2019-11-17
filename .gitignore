@@ -1,5 +1,5 @@
+/data
 *_pycache_*
 *.ipynb*
-submission.csv
-submission.py
+*train_config_*
 

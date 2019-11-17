@@ -29,7 +29,8 @@ To do:
  - add distillation to train smaller network (??);  
 
 In progress:  
- - test training and prediction on kitti dataset;  
+ - retrain UNETs for roads with 1 class and save the results on board;  
+ - train on KITTI dataset;  
  - get validation statistics for each class;  
 
 Done:  
