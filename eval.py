@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import shutil
 import random
@@ -14,7 +15,8 @@ import torch
 from torch.utils.data import DataLoader
 
 from utils import Meter, UnetResNet, FPN, TTAWrapper, load_train_config, CityscapesTestDataset, torch2np, \
-                  LabelEncoder, CityscapesTrainDataset, CityscapesDataset, KittiLaneDataset
+                  KittiTrainDataset, KittiTestDataset, KittiLaneDataset, \
+                  CityscapesTrainDataset, CityscapesDataset
 
 warnings.filterwarnings("ignore")
 seed = 69
@@ -35,30 +37,38 @@ if __name__ == "__main__":
     global_start = time.time()
 
     if not EVAL["test_mode"]:
-        train_dataset = CityscapesTrainDataset(**PATHS["CITYSCAPES"])
-        trainset, valset = train_dataset.get_paths()
 
-        image_dataset = CityscapesDataset(**DATASET)
+        if TARGET == "kitti":
+            train_dataset = KittiTrainDataset(**PATHS["KITTI"])
+            trainset, valset = train_dataset.get_paths()
+            image_dataset = KittiLaneDataset(**DATASET)
+
+        elif TARGET == "cityscapes":
+            train_dataset = CityscapesTrainDataset(**PATHS["CITYSCAPES"])
+            trainset, valset = train_dataset.get_paths()
+            image_dataset = CityscapesDataset(**DATASET)
+
         image_dataset.set_phase("val", valset)
-        dataloader = DataLoader(
-            image_dataset,
-            batch_size=1,
-            num_workers=2,
-            pin_memory=True,
-            shuffle=True,   
-        )
-    else:
-        testset = CityscapesTestDataset(PATHS["CITYSCAPES"]["test_root_path"])
 
-        image_dataset = CityscapesDataset(**DATASET)
+    else:
+
+        if TARGET == "kitti":
+            testset = KittiTestDataset(PATHS["KITTI"]["test_root_path"])
+            image_dataset = KittiLaneDataset(**DATASET)
+        
+        elif TARGET == "cityscapes":
+            testset = CityscapesTestDataset(PATHS["CITYSCAPES"]["test_root_path"])
+            image_dataset = CityscapesDataset(**DATASET)
+
         image_dataset.set_phase("test", testset)
-        dataloader = DataLoader(
-            image_dataset,
-            batch_size=1,
-            num_workers=2,
-            pin_memory=True,
-            shuffle=True,   
-        )
+
+    dataloader = DataLoader(
+        image_dataset,
+        batch_size=1,
+        num_workers=2,
+        pin_memory=True,
+        shuffle=True,   
+    )
 
     if MODEL["mode"] == "UNET":
         model = UnetResNet(encoder_name=MODEL["backbone"], 
@@ -122,7 +132,7 @@ if __name__ == "__main__":
         outputs = torch2np(outputs)
         pic = image_dataset.label_encoder.class2color(outputs, clean_up_clusters=EVAL["drop_clusters"],
                                                       mode="catId" if DATASET["train_on_cats"] else "trainId")
-        pred_name = "_".join(image_id[0].split("_")[:-1]) + "_predicted_mask.png"
+        pred_name = "_".join(re.split("\.|_", image_id[0])[:-1]) + "_predicted_mask.png"
         cv2.imwrite(os.path.join(images_path, pred_name), pic)
 
     torch.cuda.empty_cache()

@@ -24,41 +24,29 @@ Experiments plan:
         https://arxiv.org/pdf/1903.04197.pdf
         https://github.com/irfanICMLL/structure_knowledge_distillation
 
-To do:  
- - calculate number of parameters of used networks;  
+To do:   
+ - get validation statistics for each class;  
  - add distillation to train smaller network (??);  
 
 In progress:  
- - retrain UNETs for roads with 1 class and save the results on board;  
- - train on KITTI dataset;  
- - get validation statistics for each class;  
+ - fuse masks with lidar data for kitti dataset;  
+ - calculate number of parameters of used networks; 
 
 Done:  
-- add an inverse mask to connected components filtering;  
-- add post-processing into the `labels2color` - for README visualizations;  
-- make propper binary segmentation - masks with only one channel (LabelEncoder - make_ohe & class2color);  
-- retraine one of the networks with sigmoid activation at the end and .5 threshold;  
-- implement KittiLaneLabelEncoder;  
-- test yaml configs;  
-- make predictions on the hold-out test set in separate script;  
-- add yaml config to eval script;  
-- create some train config file to use it at both training and evaluation phases (use `yaml`?);  
-- add load-checkp option into Trainer init;  
-- fix TTA - seems like horizontal flips make things worse (vert. only kept);  
-- add pictures dump to the eval;  
-- load script;  
-- add predictions script;  
-- use resized images for training and resize back for prediction and loss calc. (`nn.functional.interpolate`);  
-- add current learning rate to the tensorboard;  
-- add dataloader for cityscapes and drop dataloader for `steel`;  
-- add tensorboard logs;  
+ - retrain UNETs for roads with 1 class and save the results on board;  
+ - add the KITTI if-else statement in train and eval scripts;  
+ - train on KITTI dataset;  
 
 
 #### Logs:  
+Run tensorboard on CPU:  
 ```
-tensorboard --logdir /samsung_drive/semantic_segmentation/tests/tensorboard
+CUDA_VISIBLE_DEVICES="" tensorboard --logdir /samsung_drive/semantic_segmentation/%MDOEL_DIR%/tensorboard  
 ```  
+
 #### Links: 
+
+https://miro.com/app/board/o9J_kwbzsfE=/  
 
 On logits vs activations: https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31;  
 

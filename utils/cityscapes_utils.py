@@ -171,10 +171,10 @@ def CityscapesTestDataset(test_root_path):
 
 class CityscapesDataset(Dataset):
     
-    def __init__(self, hard_augs=False, resize=None, train_on_cats=True, 
-                 select_classes=[], orig_size=(1024, 2048)):
+    def __init__(self, hard_augs=False, resize=None, train_on_cats=True, select_classes=[], orig_size=None):
                  
-        self.orig_h, self.orig_w = orig_size
+        self.orig_size = orig_size
+        self.orig_h, self.orig_w = self.orig_size 
         self.h, self.w = self.orig_h, self.orig_w
         self.resize = resize
         if self.resize is not None:

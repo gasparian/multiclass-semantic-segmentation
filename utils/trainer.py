@@ -180,7 +180,7 @@ class Trainer(object):
     
     __params = ('num_workers', 'class_weights', 'accumulation_batches',
                 'lr', 'weights_decay', 'base_threshold', 'scheduler_patience', 'activate',
-                'num_epochs', 'freeze_n_iters', 'bce_loss_weight', 'key_metric')
+                'freeze_n_iters', 'bce_loss_weight', 'key_metric')
     
     def __init__(self, model=None, image_dataset=None, optimizer=None, **kwargs):
 
@@ -277,10 +277,12 @@ class Trainer(object):
         masks = targets.to(self.device)
         # compute loss
         outputs = self.net(images)
-        orig_size = masks.size()[-2:]
+        orig_size = self.image_dataset.orig_size
         if outputs.size()[-2:] != orig_size:
-            # resize predictions back to the original size (mask size)
+            # resize predictions back to the original size
             outputs = nn.functional.interpolate(outputs, size=orig_size, mode='bilinear', align_corners=True)
+        # if masks.size()[-2:] != orig_size:
+        #     masks = nn.functional.interpolate(masks, size=orig_size, mode='nearest')
         loss = self.criterion(outputs, masks)
         return loss, outputs
     
