@@ -32,7 +32,7 @@ TRAINING:
   model_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_dice"
   load_checkpoint: ""
   weights_decay: 0.0
-  batch_size: 8
+  batch_size: 10
   accumulation_batches: 1
   freeze_n_iters: 0
   load_optimizer_state: False

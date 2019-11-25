@@ -240,8 +240,8 @@ class Trainer(object):
         self.accumulation_steps = self.batch_size * self.accumulation_batches
 
         # number of workers affect the GPU performance if the preprocessing too intensive (resizes \ augs)
-        # self.num_workers = max(2, self.batch_size // 2)
-        self.num_workers = self.batch_size
+        self.num_workers = max(2, self.batch_size // 2)
+        # self.num_workers = self.batch_size
 
         logging.info(f"Trainer initialized on {len(self.devices_ids)} devices!")
 
