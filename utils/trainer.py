@@ -237,8 +237,11 @@ class Trainer(object):
         if self.load_checkpoint:
             self.load_model(ckpt_name=self.load_checkpoint)
 
-        self.num_workers = max(2, self.batch_size // 2)
         self.accumulation_steps = self.batch_size * self.accumulation_batches
+
+        # number of workers affect the GPU performance if the preprocessing too intensive (resizes \ augs)
+        # self.num_workers = max(2, self.batch_size // 2)
+        self.num_workers = self.batch_size
 
         logging.info(f"Trainer initialized on {len(self.devices_ids)} devices!")
 
@@ -281,8 +284,6 @@ class Trainer(object):
         if outputs.size()[-2:] != orig_size:
             # resize predictions back to the original size
             outputs = nn.functional.interpolate(outputs, size=orig_size, mode='bilinear', align_corners=True)
-        # if masks.size()[-2:] != orig_size:
-        #     masks = nn.functional.interpolate(masks, size=orig_size, mode='nearest')
         loss = self.criterion(outputs, masks)
         return loss, outputs
     

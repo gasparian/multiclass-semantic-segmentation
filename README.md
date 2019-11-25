@@ -9,6 +9,8 @@ pip install --upgrade tqdm \
 
 #### Unet vs FPN:  
 
+http://presentations.cocodataset.org/COCO17-Stuff-FAIR.pdf  
+
 About difference between UNet and FPN:  
 ```
  The main difference is that there is multiple prediction layers: one for each upsampling layer. Like the U-Net, the FPN has laterals connection between the bottom-up pyramid (left) and the top-down pyramid (right). But, where U-net only copy the features and append them, FPN apply a 1x1 convolution laye45r before adding them. This allows the bottom-up pyramid called “backbone” to be pretty much whatever you want.  
@@ -70,13 +72,14 @@ Params size (MB): 97.61
 To do:   
  - get validation statistics for each class;  
  - add distillation to train smaller network (??);  
+ - fuse masks with lidar data for kitti dataset;  
 
 In progress:  
- - retrain kitti on 320x1024 instead of 256x1024;  
- - fuse masks with lidar data for kitti dataset;  
- - calculate number of parameters of used networks; 
+ - train FPN and UNET on all classes (`train_id` in cityscapes);  
 
 Done:  
+ - calculate number of parameters of used networks; 
+ - retrain kitti on 320x1024 instead of 256x1024;  
  - retrain UNETs for roads with 1 class and save the results on board;  
  - add the KITTI if-else statement in train and eval scripts;  
  - train on KITTI dataset;  
