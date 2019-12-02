@@ -4,7 +4,8 @@ PATHS:
   CITYSCAPES:
     path_masks: "./data/cityscapes/gtFine/gtFine"
     path_img: "./data/cityscapes/leftImg8bit"
-    test_root_path: "./data/cityscapes/leftImg8bit/test"
+    # test_root_path: "./data/cityscapes/leftImg8bit/test"
+    test_root_path: "/samsung_drive/semantic_segmentation/data/cityscapes/demovideo/leftImg8bit/demoVideo"
     val_cities: ["ulm", "bremen", "aachen"] # for cityscapes only
     train_root_path: "./data/cityscapes/leftImg8bit/train"
     
@@ -18,39 +19,41 @@ PATHS:
 DATASET:
   hard_augs: False # add random snow / rain / fog
   orig_size: [1024, 2048]
-  resize: [256, 512] # or []
+  resize: [512, 1024] # or []
   select_classes: []
   train_on_cats: True # Must be False if select_classes is not empty else --> train on all classes
 
 MODEL:
-  mode: "FPN" # UNET or FPN
+  mode: "UNET" # UNET or FPN
   backbone: "resnext50"
   num_classes: 8
   unet_res_blocks_decoder: False # adds residual blocks inside decoder --> net become heavier 
 
 TRAINING:  
-  model_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_dice"
-  load_checkpoint: ""
+  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_dice"
+  load_checkpoint: "/samsung_drive/semantic_segmentation/UNET_4x_downsize_dice/last_model.pth"
+  # load_checkpoint: ""
   weights_decay: 0.0
-  batch_size: 10
+  batch_size: 6
   accumulation_batches: 1
   freeze_n_iters: 0
   load_optimizer_state: False
   lr: 0.001
-  num_epochs: 50
+  num_epochs: 40
   devices_ids: [0, 1]
   key_metric: "dice"
   base_threshold: .0
   activate: False
-  bce_loss_weight: .65
+  bce_loss_weight: .8
   class_weights: [0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125]
   scheduler_patience: 3
 
 EVAL:
-  test_mode: False
-  model_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_dice/best_model.pth"
-  eval_images_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_dice/eval_images"
-  test_images_path: "/samsung_drive/semantic_segmentation/FPN_4x_downsize_dice/test_images"
+  test_mode: True # doesn't calculate metrics
+  images_morphing: True # morph images and masks
+  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_dice/best_model.pth"
+  eval_images_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_dice/eval_images"
+  test_images_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_dice/test_images"  
   device: "cuda:0" # cpu or cuda
   apply_tta: True
 

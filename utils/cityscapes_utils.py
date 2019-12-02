@@ -252,7 +252,7 @@ class CityscapesDataset(Dataset):
         else:
             img = ToTensor()(image=img)["image"]
             mask = img
-        return img, mask, image_id[0].split("/")[-1]
+        return img, mask, image_id[0]
 
     def __len__(self):
         return len(self.data_set)

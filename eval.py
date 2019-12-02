@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 
 from utils import Meter, UnetResNet, FPN, TTAWrapper, load_train_config, CityscapesTestDataset, torch2np, \
                   KittiTrainDataset, KittiTestDataset, KittiLaneDataset, \
-                  CityscapesTrainDataset, CityscapesDataset
+                  CityscapesTrainDataset, CityscapesDataset, open_img
 
 warnings.filterwarnings("ignore")
 seed = 69
@@ -132,7 +132,13 @@ if __name__ == "__main__":
         outputs = torch2np(outputs)
         pic = image_dataset.label_encoder.class2color(outputs, clean_up_clusters=EVAL["drop_clusters"],
                                                       mode="catId" if DATASET["train_on_cats"] else "trainId")
-        pred_name = "_".join(re.split("\.|_", image_id[0])[:-1]) + "_predicted_mask.png"
+        if EVAL["images_morphing"]:
+            # Add here image+mask morphing
+            orig_image = open_img(image_id[0])
+            alpha = 0.5
+            pic = cv2.addWeighted(orig_image, (1 - alpha), pic, alpha, 0)
+
+        pred_name = "_".join(re.split("\.|_", image_id[0].split("/")[-1])[:-1]) + "_predicted_mask.png"
         cv2.imwrite(os.path.join(images_path, pred_name), pic)
 
     torch.cuda.empty_cache()

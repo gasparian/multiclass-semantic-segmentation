@@ -75,7 +75,7 @@ To do:
  - fuse masks with lidar data for kitti dataset;  
 
 In progress:  
- - train FPN and UNET on all classes (`train_id` in cityscapes);  
+- script to make mpeg4 video out of images;  
 
 Done:  
  - calculate number of parameters of used networks; 
@@ -88,6 +88,14 @@ Done:
 Run tensorboard on CPU:  
 ```
 CUDA_VISIBLE_DEVICES="" tensorboard --logdir /samsung_drive/semantic_segmentation/%MDOEL_DIR%/tensorboard  
+```  
+
+#### Convert images to video:  
+
+```
+ffmpeg -f image2 -framerate 20 \
+       -pattern_type glob -i 'stuttgart_01_*.png' \
+       -c:v libx264 -pix_fmt yuv420p ../stuttgart_01.mp4
 ```  
 
 #### Links: 
