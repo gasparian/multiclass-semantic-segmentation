@@ -30,8 +30,8 @@ MODEL:
   unet_res_blocks_decoder: False # adds residual blocks inside decoder --> net become heavier 
 
 TRAINING:  
-  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_dice"
-  load_checkpoint: "/samsung_drive/semantic_segmentation/UNET_4x_downsize_dice/last_model.pth"
+  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize"
+  load_checkpoint: "/samsung_drive/semantic_segmentation/UNET_4x_downsize/last_model.pth"
   # load_checkpoint: ""
   weights_decay: 0.0
   batch_size: 6
@@ -51,9 +51,9 @@ TRAINING:
 EVAL:
   test_mode: True # doesn't calculate metrics
   images_morphing: True # morph images and masks
-  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_dice/best_model.pth"
-  eval_images_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_dice/eval_images"
-  test_images_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize_dice/test_images"  
+  model_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize/best_model.pth"
+  eval_images_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize/eval_images"
+  test_images_path: "/samsung_drive/semantic_segmentation/UNET_2x_downsize/test_images"  
   device: "cuda:0" # cpu or cuda
   apply_tta: True
 

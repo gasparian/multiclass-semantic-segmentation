@@ -75,7 +75,7 @@ To do:
  - fuse masks with lidar data for kitti dataset;  
 
 In progress:  
-- script to make mpeg4 video out of images;  
+- ;  
 
 Done:  
  - calculate number of parameters of used networks; 
@@ -94,8 +94,8 @@ CUDA_VISIBLE_DEVICES="" tensorboard --logdir /samsung_drive/semantic_segmentatio
 
 ```
 ffmpeg -f image2 -framerate 20 \
-       -pattern_type glob -i 'stuttgart_01_*.png' \
-       -c:v libx264 -pix_fmt yuv420p ../stuttgart_01.mp4
+       -pattern_type glob -i 'stuttgart_00_*.png' \
+       -c:v libx264 -pix_fmt yuv420p ../stuttgart_00.mp4
 ```  
 
 #### Links: 

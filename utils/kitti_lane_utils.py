@@ -117,4 +117,4 @@ class KittiLaneDataset(CityscapesDataset):
         else:
             img = ToTensor()(image=img)["image"]
             mask = img
-        return img, mask, image_id[0].split("/")[-1]
+        return img, mask, image_id[0]
