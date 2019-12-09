@@ -1,21 +1,42 @@
+## Multiclass semantic segmentation on [cityscapes](https://www.cityscapes-dataset.com) and [kitti](http://www.cvlibs.net/datasets/kitti/eval_road.php) datasets.  
 
-#### Instal dependencies:  
+### Dependencies:  
+Again, I strongly suggest to use [Deepo](https://github.com/ufoym/deepo) as simple experimental enviroment.  
+When you've got your "final" version of code - better build your own docker container and keep the last version on somewhere like [dockerhub](https://hub.docker.com/).  
+Anyway, here are some key dependencies:  
 ```
 pip install --upgrade tqdm \
+                      torchsummary \
                       albumentations==0.4.1 \
                       torch==1.1.0 \ 
                       torchvision==0.4.0
 ```  
 
-#### Unet vs FPN:  
+### Problem statement  
+The semantic segmentation problem itself well-known in the deep-learning community, and there are already several "state of the art" approaches to build such models. So basically we need fully-convolutional network with some pretrained backbone for feature extraction, to "map" input image with given masks (let's say each output channel represents the individual class).  
+Here are some examples of semantic segmentation from cityscapes training set:  
 
-http://presentations.cocodataset.org/COCO17-Stuff-FAIR.pdf  
+Original | Mask  
+:-------------------------:|:-------------------------:
+<img src="https://github.com/gasparian/PicsArt-Hack-binary_segmentation/blob/master/pics/ex_3_orig_mask.png"> | <img src="https://github.com/gasparian/PicsArt-Hack-binary_segmentation/blob/master/pics/ex_3_edited_mask.png">  
 
-About difference between UNet and FPN:  
+In this repo I wanted to show a way to train two most popular architectures - UNET and FPN (with pretty large resnext50 encoder).  
+Before we go into more details, I want to give an idea of where we can use these semantic masks in self-driving/robotics field: one of the use cases can be generating "prior" for pointclouds clustering algorihms. But you can ask a quation: why is semantic segmentation, when at this case it's better to use panoptic segmentation? Well, my answer will be: semantic segmentation models is a lot more simplier to understand and train, including the computational resources consumption ;)  
+
+### Unet vs Feature Pyramid Network  
+
+Both UNET and FPN uses the same conception - to use features from the different scales and I'll use really insightful words from the web about the difference between Unet and FPN:  
 ```
  The main difference is that there is multiple prediction layers: one for each upsampling layer. Like the U-Net, the FPN has laterals connection between the bottom-up pyramid (left) and the top-down pyramid (right). But, where U-net only copy the features and append them, FPN apply a 1x1 convolution laye45r before adding them. This allows the bottom-up pyramid called “backbone” to be pretty much whatever you want.  
 ```  
+Check out [this UNET paper](https://arxiv.org/pdf/1505.04597.pdf), which also give the idea of separating instances.  
+<img src="https://github.com/gasparian/PicsArt-Hack-binary_segmentation/blob/master/pics/ex_3_orig_mask.png">  
 
+And this [presentation](http://presentations.cocodataset.org/COCO17-Stuff-FAIR.pdf) from the [FPN paper](https://arxiv.org/pdf/1901.02446.pdf) authors.  
+
+#### Models size (with default parameters and same encoders)  
+
+To get model's short summary, I prefer using [torchsummary](https://github.com/sksq96/pytorch-summary).  
 Torchsummary lib may require little hack to be able to work with FPN inplementation.  
 Make the folowing edits into the `torchsummary.py`:  
 ```
@@ -24,8 +45,7 @@ try:
 except:
     summary[m_key]["input_shape"] = list(input[0][0].size()) 
 ```  
-
-You will see the results in the stdout:  
+Anf run the script (you will see the results in the stdout):  
 ```
 python model_summary.py \
         --model_type fpn \
@@ -55,42 +75,18 @@ Forward/backward pass size (MB): 4574.11
 Params size (MB): 97.61
 ```  
 
-#### Experiments plan:  
-1. Prepare images and labels (ohe - seaprated channels for each class);  
-        https://github.com/mcordts/cityscapesScripts/blob/master/cityscapesscripts/helpers/labels.py  
-2. Select only categories-classes;  
-3. Apply size progression while training;  
-4. Try UNet with and without Res. blocks in decoder (ResNext50/101 backbone);  
-5. Try FPN (ResNext50/101 backbone);  
-6. Try Snow/Rain augmentations (hard_augs) on the best performed model;  
-7. Try TTA on the best one;  
-8. Make demo videos with segmentation;  
-9. Make small student network (mobilenet encoder) and train knowledge distillation with coarse and fine datasets:  
-        https://arxiv.org/pdf/1903.04197.pdf
-        https://github.com/irfanICMLL/structure_knowledge_distillation
+As we can see, FPN segmentation model is a lot "lighter" (so faster to train).  
 
-To do:   
- - get validation statistics for each class;  
- - add distillation to train smaller network (??);  
- - fuse masks with lidar data for kitti dataset;  
-
-In progress:  
-- ;  
-
-Done:  
- - calculate number of parameters of used networks; 
- - retrain kitti on 320x1024 instead of 256x1024;  
- - retrain UNETs for roads with 1 class and save the results on board;  
- - add the KITTI if-else statement in train and eval scripts;  
- - train on KITTI dataset;  
-
-#### Logs:  
-Run tensorboard on CPU:  
+#### Logs  
+The last step before training, we can set up tensorboard (on CPU):  
 ```
 CUDA_VISIBLE_DEVICES="" tensorboard --logdir /samsung_drive/semantic_segmentation/%MDOEL_DIR%/tensorboard  
 ```  
 
-#### Convert images to video:  
+### Training and results  
+
+
+### Convert images to video:  
 
 ```
 ffmpeg -f image2 -framerate 20 \
@@ -115,9 +111,7 @@ https://youtu.be/OJyR_4U7PV8 - FPN 20 classes 01;
 https://youtu.be/Wez8wFR3QOY - FPN 20 classes 02;  
 
 
-#### Links: 
-
-https://miro.com/app/board/o9J_kwbzsfE=/  
+#### Links:  
 
 On logits vs activations: https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31;  
 
