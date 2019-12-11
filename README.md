@@ -88,7 +88,7 @@ The last step before training, we can set up tensorboard (on CPU):
 CUDA_VISIBLE_DEVICES="" tensorboard --logdir /samsung_drive/semantic_segmentation/%MDOEL_DIR%/tensorboard  
 ```  
 Here are examples of typical training process (Unet for all cityscapes classes):  
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-33.png" height=250 /> | <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-41.png" height=250 />  </p>
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-33.png" height=250 />  <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-41.png" height=250 />  </p>
 
 ### Training configuration  
 Core functionality implemented in `Trainer` class (`./utils/trainer.py`).  
