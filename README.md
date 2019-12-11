@@ -16,7 +16,7 @@ pip install --upgrade tqdm \
 
 ### Problem statement  
 The semantic segmentation problem itself well-known in the deep-learning community, and there are already several "state of the art" approaches to build such models. So basically we need fully-convolutional network with some pretrained backbone for feature extraction to "map" input image with given masks (let's say each output channel represents the individual class).  
-Here is example of semantic segmentation from cityscapes training set:  
+Here is example of cityscapes annotation:  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (72).png" height=300 /> </p>  
 
@@ -110,16 +110,17 @@ https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less
 #### Augmentations  
 
 
+
 ### Training results  
 
 Here I took the best of the 40 epochs of training on 2x down-sized images (512x1024) for 2 and 8 classes and 8x down-sized images for 20 classes (to fir the batch into GPU's memory).  
 Models for 2-8 classes were trained in two stages: on smaller images at first - 256x512 and then only 2x resized - 512x1024.  
-
-Model:                        | Unet   | FPN  
-:----------------------------:|:------:|:----:
-2 classes (road segmentation) | 0.956  | 0.956
-8 classes (categories only)   | 0.929  | 0.930
-20 classes                    | 0.852  | 0.858
+Dice metric comparison table:  
+Model:                        | Unet   | FPN   | Size
+:----------------------------:|:------:|:-----:|:----:
+2 classes (road segmentation) | 0.956  | 0.956 | 256x512 --> 512x1024
+8 classes (categories only)   | 0.929  | 0.930 | 256x512 --> 512x1024
+20 classes                    | 0.852  | 0.858 | 128x256  
 
 #### Convert predictions to video:  
 
