@@ -37,7 +37,7 @@ Check out [this UNET paper](https://arxiv.org/pdf/1505.04597.pdf), which also gi
 
 And this [presentation](http://presentations.cocodataset.org/COCO17-Stuff-FAIR.pdf) from the [FPN paper](https://arxiv.org/pdf/1901.02446.pdf) authors.  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-12-09 18-35-14.png" /> </p>
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-12-09 18-35-14.png" height=384 /> </p>
 
 #### Models size (with default parameters and same encoders)  
 
@@ -88,7 +88,7 @@ The last step before training, we can set up tensorboard (on CPU):
 CUDA_VISIBLE_DEVICES="" tensorboard --logdir /samsung_drive/semantic_segmentation/%MDOEL_DIR%/tensorboard  
 ```  
 Here are examples of typical training process (Unet for all cityscapes classes):  
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-33.png">  <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-41.png">  </p>  
+<img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-33.png">  <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-41.png">  
 
 ### Training configuration  
 Core functionality implemented in `Trainer` class (`./utils/trainer.py`).  
