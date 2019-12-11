@@ -18,7 +18,7 @@ pip install --upgrade tqdm \
 The semantic segmentation problem itself well-known in the deep-learning community, and there are already several "state of the art" approaches to build such models. So basically we need fully-convolutional network with some pretrained backbone for feature extraction to "map" input image with given masks (let's say each output channel represents the individual class).  
 Here is example of semantic segmentation from cityscapes training set:  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (72).png" height=384 /> </p>
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (72).png" height=300 /> </p>  
 
 In this repo I wanted to show a way to train two most popular architectures - UNET and FPN (with pretty large resnext50 encoders).  
 Also, I want to give an idea of where we can use these semantic masks in self-driving/robotics field: one of the use cases can be generating "prior" for pointclouds clustering algorihms. But you can ask a quastion: why is semantic segmentation, when at this case it's better to use panoptic/instance segmentation? Well, my answer will be: semantic segmentation models is a lot more simplier to understand and train, including the computational resources consumption ;)  
