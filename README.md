@@ -116,6 +116,7 @@ https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less
 Here I took the best of the 40 epochs of training on 2x down-sized images (512x1024) for 2 and 8 classes and 8x down-sized images for 20 classes (to fir the batch into GPU's memory).  
 Models for 2-8 classes were trained in two stages: on smaller images at first - 256x512 and then only 2x resized - 512x1024.  
 Dice metric comparison table:  
+
 Model:                        | Unet   | FPN   | Size
 :----------------------------:|:------:|:-----:|:----:
 2 classes (road segmentation) | 0.956  | 0.956 | 256x512 >> 512x1024
