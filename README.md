@@ -1,5 +1,7 @@
 ## Multiclass semantic segmentation on [cityscapes](https://www.cityscapes-dataset.com) and [kitti](http://www.cvlibs.net/datasets/kitti/eval_road.php) datasets.  
 
+<img src="https://github.com/gasparian/semantic_segmentation_experiments/imgs/UNET_2x_stuttgart_01.gif" height=384>  
+
 ### Dependencies:  
 Again, I strongly suggest to use [Deepo](https://github.com/ufoym/deepo) as simple experimental enviroment.  
 When you've got your "final" version of code - better build your own docker container and keep the last version on somewhere like [dockerhub](https://hub.docker.com/).  
@@ -30,7 +32,7 @@ Both UNET and FPN uses the same conception - to use features from the different 
  The main difference is that there is multiple prediction layers: one for each upsampling layer. Like the U-Net, the FPN has laterals connection between the bottom-up pyramid (left) and the top-down pyramid (right). But, where U-net only copy the features and append them, FPN apply a 1x1 convolution laye45r before adding them. This allows the bottom-up pyramid called “backbone” to be pretty much whatever you want.  
 ```  
 Check out [this UNET paper](https://arxiv.org/pdf/1505.04597.pdf), which also give the idea of separating instances.  
-<img src="https://github.com/gasparian/PicsArt-Hack-binary_segmentation/blob/master/pics/ex_3_orig_mask.png">  
+<img src="https://github.com/gasparian/PicsArt-Hack-binary_segmentation/blob/master/pics/ex_3_orig_mask.png" height=384>  
 
 And this [presentation](http://presentations.cocodataset.org/COCO17-Stuff-FAIR.pdf) from the [FPN paper](https://arxiv.org/pdf/1901.02446.pdf) authors.  
 
@@ -110,6 +112,11 @@ https://youtu.be/DzyLExn0M54 - FPN 20 classes 00;
 https://youtu.be/OJyR_4U7PV8 - FPN 20 classes 01;  
 https://youtu.be/Wez8wFR3QOY - FPN 20 classes 02;  
 
+```
+ffmpeg -f image2 -framerate 20 \
+       -pattern_type glob -i 'stuttgart_00_*.png' \
+       -c:v libx264 -pix_fmt yuv420p ../stuttgart_00.mp4
+```  
 
 #### Links:  
 
