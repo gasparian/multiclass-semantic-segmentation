@@ -1,6 +1,6 @@
 ## Multiclass semantic segmentation on [cityscapes](https://www.cityscapes-dataset.com) and [kitti](http://www.cvlibs.net/datasets/kitti/eval_road.php) datasets.  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/UNET_2x_stuttgart_01.gif" /> </p>
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/UNET_2x_stuttgart_01.gif" height=320 /> </p>  
 
 ### Dependencies:  
 Again, I strongly suggest to use [Deepo](https://github.com/ufoym/deepo) as simple experimental enviroment.  
@@ -109,15 +109,15 @@ https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less
 
 #### Augmentations  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (73).png" height=384 /> </p>  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (73).png" height=320 /> </p>  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (79).png" height=384 /> </p>  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (79).png" height=320 /> </p>  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (74).png" height=384 /> </p>  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (74).png" height=320 /> </p>  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (76).png" height=384 /> </p>  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (76).png" height=320 /> </p>  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (77).png" height=384 /> </p>  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (77).png" height=320 /> </p>  
 
 ### Training results  
 
@@ -125,7 +125,7 @@ Here I took the best of the 40 epochs of training on 2x down-sized images (512x1
 Models for 2-8 classes were trained in two stages: on smaller images at first - 256x512 and then only 2x resized - 512x1024.  
 Dice metric comparison table:  
 
-                              | Unet   | FPN   | Size
+Classes #                     | Unet   | FPN   | Size
 :----------------------------:|:------:|:-----:|:----:
 2 classes (road segmentation) | 0.956  | 0.956 | 256x512 >> 512x1024
 8 classes (categories only)   | 0.929  | 0.930 | 256x512 >> 512x1024
