@@ -1,6 +1,6 @@
 ## Multiclass semantic segmentation on [cityscapes](https://www.cityscapes-dataset.com) and [kitti](http://www.cvlibs.net/datasets/kitti/eval_road.php) datasets.  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/UNET_2x_stuttgart_01.gif" width="500" height="300" /></p>
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/UNET_2x_stuttgart_01.gif" /></p>
 
 ### Dependencies:  
 Again, I strongly suggest to use [Deepo](https://github.com/ufoym/deepo) as simple experimental enviroment.  
