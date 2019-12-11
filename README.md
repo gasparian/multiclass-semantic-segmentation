@@ -118,8 +118,8 @@ Models for 2-8 classes were trained in two stages: on smaller images at first - 
 Dice metric comparison table:  
 Model:                        | Unet   | FPN   | Size
 :----------------------------:|:------:|:-----:|:----:
-2 classes (road segmentation) | 0.956  | 0.956 | 256x512 --> 512x1024
-8 classes (categories only)   | 0.929  | 0.930 | 256x512 --> 512x1024
+2 classes (road segmentation) | 0.956  | 0.956 | 256x512-->512x1024
+8 classes (categories only)   | 0.929  | 0.930 | 256x512-->512x1024
 20 classes                    | 0.852  | 0.858 | 128x256  
 
 #### Convert predictions to video:  
