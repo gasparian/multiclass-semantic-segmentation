@@ -1,6 +1,6 @@
 ## Multiclass semantic segmentation on [cityscapes](https://www.cityscapes-dataset.com) and [kitti](http://www.cvlibs.net/datasets/kitti/eval_road.php) datasets.  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/UNET_2x_stuttgart_01.gif" /></p>
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/UNET_2x_stuttgart_01.gif" /> </p>
 
 ### Dependencies:  
 Again, I strongly suggest to use [Deepo](https://github.com/ufoym/deepo) as simple experimental enviroment.  
@@ -15,26 +15,29 @@ pip install --upgrade tqdm \
 ```  
 
 ### Problem statement  
-The semantic segmentation problem itself well-known in the deep-learning community, and there are already several "state of the art" approaches to build such models. So basically we need fully-convolutional network with some pretrained backbone for feature extraction, to "map" input image with given masks (let's say each output channel represents the individual class).  
-Here are some examples of semantic segmentation from cityscapes training set:  
+The semantic segmentation problem itself well-known in the deep-learning community, and there are already several "state of the art" approaches to build such models. So basically we need fully-convolutional network with some pretrained backbone for feature extraction to "map" input image with given masks (let's say each output channel represents the individual class).  
+Here is example of semantic segmentation from cityscapes training set:  
 
-Original | Mask  
-:-------------------------:|:-------------------------:
-<img src="https://github.com/gasparian/PicsArt-Hack-binary_segmentation/blob/master/pics/ex_3_orig_mask.png"> | <img src="https://github.com/gasparian/PicsArt-Hack-binary_segmentation/blob/master/pics/ex_3_edited_mask.png">  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (72).png" height=384 /> </p>
 
-In this repo I wanted to show a way to train two most popular architectures - UNET and FPN (with pretty large resnext50 encoder).  
-Before we go into more details, I want to give an idea of where we can use these semantic masks in self-driving/robotics field: one of the use cases can be generating "prior" for pointclouds clustering algorihms. But you can ask a quation: why is semantic segmentation, when at this case it's better to use panoptic segmentation? Well, my answer will be: semantic segmentation models is a lot more simplier to understand and train, including the computational resources consumption ;)  
+In this repo I wanted to show a way to train two most popular architectures - UNET and FPN (with pretty large resnext50 encoders).  
+Also, I want to give an idea of where we can use these semantic masks in self-driving/robotics field: one of the use cases can be generating "prior" for pointclouds clustering algorihms. But you can ask a quastion: why is semantic segmentation, when at this case it's better to use panoptic/instance segmentation? Well, my answer will be: semantic segmentation models is a lot more simplier to understand and train, including the computational resources consumption ;)  
 
 ### Unet vs Feature Pyramid Network  
 
-Both UNET and FPN uses the same conception - to use features from the different scales and I'll use really insightful words from the web about the difference between Unet and FPN:  
-```
- The main difference is that there is multiple prediction layers: one for each upsampling layer. Like the U-Net, the FPN has laterals connection between the bottom-up pyramid (left) and the top-down pyramid (right). But, where U-net only copy the features and append them, FPN apply a 1x1 convolution laye45r before adding them. This allows the bottom-up pyramid called “backbone” to be pretty much whatever you want.  
+Both UNET and FPN uses the same conception - to use features from the different scales with skip-connections and I'll use really insightful words from the web about the difference between Unet and FPN:  
 ```  
-Check out [this UNET paper](https://arxiv.org/pdf/1505.04597.pdf), which also give the idea of separating instances.  
-<img src="https://github.com/gasparian/PicsArt-Hack-binary_segmentation/blob/master/pics/ex_3_orig_mask.png" height=384>  
+...
+ The main difference is that there is multiple prediction layers: one for each upsampling layer. Like the U-Net, the FPN has laterals connection between the bottom-up pyramid (left) and the top-down pyramid (right). But, where U-net only copy the features and append them, FPN apply a 1x1 convolution layer before adding them. This allows the bottom-up pyramid called “backbone” to be pretty much whatever you want.  
+ ...
+```  
+Check out [this UNET paper](https://arxiv.org/pdf/1505.04597.pdf), which also gives the idea of separating instances.  
+
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/1_dKPBgCdJx6zj3MpED3lcNA.png" height=384 /> </p>
 
 And this [presentation](http://presentations.cocodataset.org/COCO17-Stuff-FAIR.pdf) from the [FPN paper](https://arxiv.org/pdf/1901.02446.pdf) authors.  
+
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-12-09 18-35-14.png" /> </p>
 
 #### Models size (with default parameters and same encoders)  
 
@@ -47,13 +50,13 @@ try:
 except:
     summary[m_key]["input_shape"] = list(input[0][0].size()) 
 ```  
-Anf run the script (you will see the results in the stdout):  
+Example (you will see the results in the stdout):  
 ```
 python model_summary.py \
-        --model_type fpn \
-        --backbone resnext50 \
-        --unet_res_blocks 0 \
-        --input_size 3,512,1024
+       --model_type fpn \
+       --backbone resnext50 \
+       --unet_res_blocks 0 \
+       --input_size 3,512,1024
 ```  
 
 `--model_type unet --backbone resnext50 --unet_res_blocks 1 --input_size 3,512,1024`:  
@@ -84,11 +87,41 @@ The last step before training, we can set up tensorboard (on CPU):
 ```
 CUDA_VISIBLE_DEVICES="" tensorboard --logdir /samsung_drive/semantic_segmentation/%MDOEL_DIR%/tensorboard  
 ```  
+Here are examples of typical training process (Unet for all cityscapes classes):  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-33.png">  <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-41.png">  </p>  
 
-### Training and results  
+### Training configuration  
+Core functionality implemented in `Trainer` class (`./utils/trainer.py`).  
+The training/evaluating pipeline is straight-forward: you just need to fill out the `train_config.yaml` according to the selected model and dataset.  
+Let's take a look at the each module in training/evaluation configuration:  
+ - `TARGET` - the dataset you want to train on - it affect the preprocessing stage;  
+ - `PATH` - it's just the paths to train, validation and test datasets;  
+ - `DATASET` - here we must set the image sizes, select classes to train and control augmentations;  
+ - `MODEL` - declare model type, backbone and number of classes (affects the last layers of network);  
+ - `TRAINING` - here are all optimization process properties: loss, metric, class weights and etc.;  
+ - `EVAL` - paths for storing the predictions, test-time augmentation, thresholds and etc.;  
+There is an example of config file in the root dir.  
+
+#### Loss and metric  
+
+https://github.com/gasparian/PicsArtHack-binary-segmentation  
+https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31  
+
+#### Augmentations  
 
 
-### Convert images to video:  
+### Training results  
+
+Here I took the best of the 40 epochs of training on 2x down-sized images (512x1024) for 2 and 8 classes and 8x down-sized images for 20 classes (to fir the batch into GPU's memory).  
+Models for 2-8 classes were trained in two stages: on smaller images at first - 256x512 and then only 2x resized - 512x1024.  
+
+Model:                        | Unet   | FPN  
+:----------------------------:|:------:|:----:
+2 classes (road segmentation) | 0.956  | 0.956
+8 classes (categories only)   | 0.929  | 0.930
+20 classes                    | 0.852  | 0.858
+
+#### Convert predictions to video:  
 
 ```
 ffmpeg -f image2 -framerate 20 \
@@ -111,14 +144,3 @@ https://youtu.be/rkm6OpPCZY0 - UNET 20 classes 02;
 https://youtu.be/DzyLExn0M54 - FPN 20 classes 00;  
 https://youtu.be/OJyR_4U7PV8 - FPN 20 classes 01;  
 https://youtu.be/Wez8wFR3QOY - FPN 20 classes 02;  
-
-```
-ffmpeg -f image2 -framerate 20 \
-       -pattern_type glob -i 'stuttgart_00_*.png' \
-       -c:v libx264 -pix_fmt yuv420p ../stuttgart_00.mp4
-```  
-
-#### Links:  
-
-On logits vs activations: https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31;  
-
