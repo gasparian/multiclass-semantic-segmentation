@@ -135,6 +135,7 @@ Previous augmented image with random rain, light beam and snow:
 Another way to use augmentations to increase model performance, is to apply some "soft" affine transformations like flips and then average the predictions results (Once I read the great analogy on how a human can look at the image from different angles and better understand what is shown there).  
 This process called "test-time augmentation" or simply **TTA**. The bad thing is that we need to make predictions `N_images X N_transforms` times. Here is some visual explanation on how this works:  
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/temp_TTA.png" height=380 /> </p>  
+
 *tsharpen is just (x_0^t + ... +x_i^t)/N*  
 
 I use simple mean, but you can try, for instance, gemetric mean, tsharpen and etc.  
