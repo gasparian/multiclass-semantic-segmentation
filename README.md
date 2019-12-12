@@ -138,7 +138,7 @@ This process called "test-time augmentation" or simply **TTA**. The bad thing is
 
 *tsharpen is just (x_0^t + ... +x_i^t)/N*  
 
-I use simple mean, but you can try, for instance, gemetric mean, tsharpen and etc.  
+I use simple arithmetic mean, but you can try, for instance, gemetric mean, tsharpen and etc.  
 
 ### Training results  
 
