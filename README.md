@@ -3,9 +3,9 @@
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/UNET_2x_stuttgart_01.gif" height=320 /> </p>  
 
 ### Dependencies:  
-Again, I strongly suggest to use [Deepo](https://github.com/ufoym/deepo) as simple experimental enviroment.  
-When you've got your "final" version of code - better build your own docker container and keep the last version on somewhere like [dockerhub](https://hub.docker.com/).  
-Anyway, here are some key dependencies:  
+Again, I strongly suggest to use [Deepo](https://github.com/ufoym/deepo) as a simple experimental enviroment.  
+When you've done with your code - better build your own docker container and keep the last version on somewhere like [dockerhub](https://hub.docker.com/).  
+Anyway, here are some key dependencies for these repo:  
 ```
 pip install --upgrade tqdm \
                       torchsummary \
@@ -25,10 +25,13 @@ Also, I want to give an idea of where we can use these semantic masks in self-dr
 
 ### Unet vs Feature Pyramid Network  
 
-Both UNET and FPN uses the same conception - to use features from the different scales with skip-connections and I'll use really insightful words from the web about the difference between Unet and FPN:  
+Both UNET and FPN uses features from the different scales with skip-connections and I'll quote really insightful words from the web about the difference between UNet and FPN:  
 ```  
 ...
- The main difference is that there is multiple prediction layers: one for each upsampling layer. Like the U-Net, the FPN has laterals connection between the bottom-up pyramid (left) and the top-down pyramid (right). But, where U-net only copy the features and append them, FPN apply a 1x1 convolution layer before adding them. This allows the bottom-up pyramid called “backbone” to be pretty much whatever you want.  
+ The main difference is that there is multiple prediction layers: one for each upsampling layer. 
+ Like the U-Net, the FPN has laterals connection between the bottom-up pyramid (left) and the top-down pyramid (right).
+ But, where U-net only copy the features and append them, FPN apply a 1x1 convolution layer before adding them. 
+ This allows the bottom-up pyramid called “backbone” to be pretty much whatever you want.  
  ...
 ```  
 Check out [this UNET paper](https://arxiv.org/pdf/1505.04597.pdf), which also gives the idea of separating instances.  
@@ -102,6 +105,10 @@ Let's take a look at the each module in training/evaluation configuration:
  - `EVAL` - paths for storing the predictions, test-time augmentation, thresholds and etc.;  
 There is an example of config file in the root dir.  
 
+#### Train datasets  
+
+
+
 #### Loss and metric  
 
 https://github.com/gasparian/PicsArtHack-binary-segmentation  
@@ -109,15 +116,28 @@ https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less
 
 #### Augmentations  
 
+Augmentation is a well-established technique for dataset extension. What we do, is slightly modifing both the image and mask. Here, I apply augmentations "on the fly" along with batch generation, via the best known library [albumentations](https://github.com/albumentations-team/albumentations).  
+Usually I end up with some mix of a couple spatial and RGB augmentations: like crops/flip + random contrast/brightness (you can check out it in `./utils/cityscapes_utils.py`).  
+Also, sometimes you want to apply really hard augs, to imitate images from other "conditions distribution", like snow, shadows, rain and etc. Alnumentations gives you that possibility via [this code](https://github.com/UjjwalSaxena/Automold--Road-Augmentation-Library).  
+Here is original image:  
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (73).png" height=320 /> </p>  
 
+Here is "darkened" flipped and slightly cropped image:  
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (79).png" height=320 /> </p>  
 
+Previous augmented image with random rain, light beam and snow:  
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (74).png" height=320 /> </p>  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (76).png" height=320 /> </p>  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (77).png" height=320 /> </p>  
+
+Another way to use augmentations to increase model performance, is to apply some "soft" affine transformations like flips and then average the predictions results (Once I read the great analogy on how a human can look at the image from different angles and better understand what is shown there).  
+This process called "test-time augmentation" or simply **TTA**. The bad thing is that we need to make predictions `N_images X N_transforms` times. Here is some visual explanation on how this works:  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/temp_TTA.png" height=380 /> </p>  
+*tsharpen is just (x_0^t + ... +x_i^t)/N*  
+
+I use simple mean, but you can try, for instance, gemetric mean, tsharpen and etc.  
 
 ### Training results  
 
