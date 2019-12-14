@@ -144,13 +144,78 @@ I use simple arithmetic mean, but you can try, for instance, gemetric mean, tsha
 
 Here I took the best of the 40 epochs of training on 2x down-sized images (512x1024) for 2 and 8 classes and 8x down-sized images for 20 classes (to fir the batch into GPU's memory).  
 Models for 2-8 classes were trained in two stages: on smaller images at first - 256x512 and then only 2x resized - 512x1024.  
+
 Dice metric comparison table:  
 
 Classes #                     | Unet   | FPN   | Size
 :----------------------------:|:------:|:-----:|:----:
 2 classes (road segmentation) | 0.956  | 0.956 | 256x512 >> 512x1024
-8 classes (categories only)   | 0.929  | 0.930 | 256x512 >> 512x1024
+8 classes (categories only)   | 0.929  | 0.931 | 256x512 >> 512x1024
 20 classes                    | 0.852  | 0.858 | 128x256  
+
+FPN_2x_8_classes_dice:  
+void  :  0.7695179785163998  
+flat  :  0.954101561116547  
+construction  :  0.8899592300224257  
+object  :  0.5734900928794959  
+nature  :  0.885317928184811  
+sky  :  0.8046623786736248  
+human  :  0.4921543036595497  
+vehicle  :  0.8968075312737721  
+
+UNET_2x_8_classes_dice:  
+void  :  0.7503326485044927  
+flat  :  0.9580260481589877  
+construction  :  0.8878791209596855  
+object  :  0.5612115702635612  
+nature  :  0.8840065234129783  
+sky  :  0.8060234629732167  
+human  :  0.4799864852331326  
+vehicle  :  0.8903183527131622  
+
+FPN_2x_20_classes:  
+road  :  0.9432397028638249  
+sidewalk  :  0.5622089075280429  
+building  :  0.776923839396073  
+wall  :  0.010887374767126182  
+fence  :  0.04605165484807112  
+pole  :  0.041541812083839134  
+traffic light  :  0.31800822675761453  
+traffic sign  :  0.12762602770190618  
+vegetation  :  0.808517172055431  
+terrain  :  0.17795670616209633  
+sky  :  0.7475589540906442  
+person  :  0.1321830293888019  
+rider  :  0.013297597471720133  
+car  :  0.7588354995123979  
+truck  :  0.009891424920314399  
+bus  :  0.02247226849580422  
+train  :  0.01321079940495328  
+motorcycle  :  0.0048342461769397445  
+bicycle  :  0.07201767711518094  
+unlabeled  :  0.21634189388127684  
+
+UNET_2x_20_classes:  
+road  :  0.9440436809490891  
+sidewalk  :  0.6084449825760638  
+building  :  0.7850691959325576  
+wall  :  0.019558298548794963  
+fence  :  0.017106216898363117  
+pole  :  0.13096931348880647  
+traffic light  :  0.3214971764570376  
+traffic sign  :  0.16104014005519948  
+vegetation  :  0.8217051051527201  
+terrain  :  0.23579725361838122  
+sky  :  0.7654560399870592  
+person  :  0.14140093144525379  
+rider  :  0.0  
+car  :  0.7803748280383065  
+truck  :  0.0009775121369932451  
+bus  :  0.001516195561271161  
+train  :  0.0005903021048388293  
+motorcycle  :  0.0  
+bicycle  :  0.05624527321097592  
+unlabeled  :  0.11189124864485293  
 
 #### Convert predictions to video:  
 

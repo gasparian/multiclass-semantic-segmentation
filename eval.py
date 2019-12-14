@@ -100,7 +100,7 @@ if __name__ == "__main__":
         TTAModel = TTAWrapper(model, merge_mode="mean")
 
     if not EVAL["test_mode"]:
-        meter = Meter(base_threshold=EVAL["base_threshold"])
+        meter = Meter(base_threshold=EVAL["base_threshold"], get_class_metric=True)
 
     images_path = EVAL["eval_images_path"] if not EVAL["test_mode"] else EVAL["test_images_path"]
     try:
@@ -147,7 +147,17 @@ if __name__ == "__main__":
     if not EVAL["test_mode"]:
         dices, iou = meter.get_metrics("val")
         print("***** Prediction done in {} sec.; IoU: {}, Dice: {} ***** \n(total elapsed time: {} sec.) ".\
-                format(int(time.time()-start), iou, dices[0], int(time.time()-global_start)))
+                format(int(time.time()-start), iou, dices[0]["dice_all"], int(time.time()-global_start)))
+        if TARGET == "cityscapes" and len(dices[0]) > 1:
+            labels_df = image_dataset.label_encoder.cityscapes_labels_df
+            if DATASET["train_on_cats"]:
+                cat, name = "catId", "category"
+            else:
+                cat, name = "trainId", "name"
+            print("***** Class metrics: *****")
+            for k, v in dices[0].items():
+                if k != "dice_all":
+                    print(labels_df[labels_df[cat] == int(k)][name].iloc[0], " : ", v)
     else:
         print("***** Prediction on test set done in {} sec. ***** \n(total elapsed time: {} sec.) ".\
                 format(int(time.time()-start), int(time.time()-global_start)))

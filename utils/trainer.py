@@ -26,8 +26,9 @@ class Meter:
 
     '''A meter to keep track of iou and dice scores throughout an epoch'''
 
-    def __init__(self, root_result_dir="", base_threshold=.5):
+    def __init__(self, root_result_dir="", base_threshold=.5, get_class_metric=False):
         self.base_threshold = base_threshold # threshold
+        self.get_class_metric = get_class_metric
         # tensorboard logging
         if root_result_dir:
             self.tb_log = SummaryWriter(log_dir=os.path.join(root_result_dir, 'tensorboard'))
@@ -50,12 +51,13 @@ class Meter:
         '''probability and truth must be torch tensors'''
         batch_size = len(truth)
         with torch.no_grad():
-            probability = probability.view(batch_size, -1)
-            truth = truth.view(batch_size, -1)
-            assert(probability.shape == truth.shape)
+            probability = (probability > self.base_threshold).float()
+            truth = (truth > 0.5).float()
 
-            p = (probability > self.base_threshold).float()
-            t = (truth > 0.5).float()
+            p = probability.view(batch_size, -1)
+            t = truth.view(batch_size, -1)
+            assert(p.shape == t.shape)
+
             intersection = (p*t).sum(-1)
             union = (p+t).sum(-1)
 
@@ -65,8 +67,8 @@ class Meter:
             pos_index = torch.nonzero(t_sum >= 1)
 
             neg = (p_sum == 0).float()
-            dice_pos = (2 * intersection) / union
-            iou_pos = intersection / union
+            dice_pos = (2 * intersection) / (union + 1e-7)
+            iou_pos = intersection / (union + 1e-7)
 
             neg = neg[neg_index]
             dice_pos = dice_pos[pos_index]
@@ -84,6 +86,16 @@ class Meter:
             num_neg = len(neg_index)
             num_pos = len(pos_index)
 
+            dice = {"dice_all": dice}
+
+            if self.get_class_metric:
+                num_classes = probability.shape[1]
+                for c in range(num_classes):
+                    iflat = probability[:, c,...].view(batch_size, -1)
+                    tflat = truth[:, c,...].view(batch_size, -1)
+                    intersection = (iflat * tflat).sum()
+                    dice[str(c)] = ((2. * intersection) / (iflat.sum() + tflat.sum() + 1e-7)).item()
+
         return iou, dice, neg, dice_pos, num_neg, num_pos
 
     def update(self, phase, targets, outputs):
@@ -96,7 +108,14 @@ class Meter:
 
     def get_metrics(self, phase):
         """averages computed metrics over the epoch"""
-        dice = np.mean(self.base_dice_scores[phase])
+        dice = {}
+        l = len(self.base_dice_scores[phase])
+        for i, d in enumerate(self.base_dice_scores[phase]):
+            for k in d:
+                if k not in dice:
+                    dice[k] = 0
+                dice[k] += d[k] / l
+            
         dice_neg = np.mean(self.dice_neg_scores[phase])
         dice_pos = np.mean(self.dice_pos_scores[phase])
         dices = [dice, dice_neg, dice_pos]
@@ -108,10 +127,10 @@ class Meter:
         dices, iou = self.get_metrics(phase)
         dice, dice_neg, dice_pos = dices
         message = "Phase: %s | Loss: %0.4f | IoU: %0.4f | dice: %0.4f | dice_neg: %0.4f | dice_pos: %0.4f" \
-            % (phase, epoch_loss, iou, dice, dice_neg, dice_pos)
+            % (phase, epoch_loss, iou, dice["dice_all"], dice_neg, dice_pos)
         logging.info(message)
 
-        self.tb_log.add_scalar(f'{phase}_dice', dice, itr)
+        self.tb_log.add_scalar(f'{phase}_dice', dice["dice_all"], itr)
         self.tb_log.add_scalar(f'{phase}_dice_neg', dice_neg, itr)
         self.tb_log.add_scalar(f'{phase}_dice_pos', dice_pos, itr)
         self.tb_log.add_scalar(f'{phase}_iou', iou, itr)
@@ -371,7 +390,7 @@ class Trainer(object):
         dice, iou = self.meter.epoch_log(phase, epoch_loss, last_itr)
 
         self.losses[phase].append(epoch_loss)
-        self.dice_scores[phase].append(dice)
+        self.dice_scores[phase].append(dice["dice_all"])
         self.iou_scores[phase].append(iou)
 
         torch.cuda.empty_cache()
