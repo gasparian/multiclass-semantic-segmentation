@@ -172,30 +172,12 @@ ffmpeg -f image2 -framerate 20 \
        -pattern_type glob -i 'stuttgart_00_*.png' \
        -c:v libx264 -pix_fmt yuv420p ../stuttgart_00.mp4
 ```  
-
-https://youtu.be/dHnidGY_Lwc - UNET 2 classes 00;  
-https://youtu.be/RURCE3K7OeA - UNET 2 classes 01;  
-https://youtu.be/OrAe5DiYWQk - UNET 2 classes 02;  
-
-https://youtu.be/RUu6upRSi20 - FPN 2 classes 00;  
-https://youtu.be/innUjjzpQ8s - FPN 2 classes 01;  
-https://youtu.be/cGZTEw16rQg - FPN 2 classes 02;  
-
-https://youtu.be/hmIV17M7Gf8 - UNET 8 classes 00;  
-https://youtu.be/lW43CHLNL5k - UNET 8 classes 01;  
-https://youtu.be/a2HjDz_IMMg - UNET 8 classes 02;  
-
-https://youtu.be/7qGSZ9XypkE - FPN 8 classes 00;  
-https://youtu.be/6PhdoajzwNQ - FPN 8 classes 01;  
-https://youtu.be/O0_Jzrfmgqk - FPN 8 classes 02;  
-
-https://youtu.be/EpN4Jx60pXI - UNET 20 classes 00;  
-https://youtu.be/X1Oa2x5BAkg - UNET 20 classes 01;  
-https://youtu.be/rkm6OpPCZY0 - UNET 20 classes 02;  
-
-https://youtu.be/DzyLExn0M54 - FPN 20 classes 00;  
-https://youtu.be/OJyR_4U7PV8 - FPN 20 classes 01;  
-https://youtu.be/Wez8wFR3QOY - FPN 20 classes 02;  
+UNET, 2 classes: [00](https://youtu.be/dHnidGY_Lwc), [01](https://youtu.be/RURCE3K7OeA), [02](https://youtu.be/OrAe5DiYWQk).  
+FPN, 2 classes: [00](https://youtu.be/RUu6upRSi20), [01](https://youtu.be/innUjjzpQ8s), [02](https://youtu.be/cGZTEw16rQg).  
+UNET, 8 classes: [00](https://youtu.be/hmIV17M7Gf8), [01](https://youtu.be/lW43CHLNL5k), [02](https://youtu.be/a2HjDz_IMMg).  
+FPN, 8 classes: [00](https://youtu.be/7qGSZ9XypkE), [01](https://youtu.be/6PhdoajzwNQ), [02](https://youtu.be/O0_Jzrfmgqk).  
+UNET, 20 classes: [00](https://youtu.be/EpN4Jx60pXI), [01](https://youtu.be/X1Oa2x5BAkg), [02](https://youtu.be/rkm6OpPCZY0).  
+FPN, 20 classes: [00](https://youtu.be/DzyLExn0M54), [01](https://youtu.be/OJyR_4U7PV8), [02](https://youtu.be/Wez8wFR3QOY).  
 
 ### Reference  
 
