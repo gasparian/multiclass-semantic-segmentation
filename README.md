@@ -168,16 +168,14 @@ Model  | void   | flat   | construction | object | nature | sky   | human | vehi
 FPN    | 0.769  | 0.954  | 0.889        | 0.573  | 0.885  | 0.804 | 0.492 | 0.897  
 UNET   | 0.750  | 0.958  | 0.888        | 0.561  | 0.884  | 0.806 | 0.479 | 0.890  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/FPN8.png" height=350 /> </p>  
-
 20 classes:  
 
 Model  | road   | sidewalk   | building | wall | fence | pole   | traffic light | traffic sign | vegetation | terrain | sky | person | rider | car | truck | bus | train | motorcycle | bicycle | unlabeled  
-:-----:|:------:|:------:|:------------:|:------:|:------:|:-----:|:-----:|:-------:
+:-----:|:------:|:------:|:------------:|:------:|:------:|:-----:|:-----:|:-------:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:
 FPN    | 0.943  | 0.562  | 0.777        | 0.011  | 0.046  | 0.041 | 0.318 | 0.128 | 0.808 | 0.178 | 0.747 | 0.132 | 0.0132 | 0.759 | 0.010 | 0.022 | 0.013 | 0.005 | 0.072 | 0.216  
 UNET   | 0.944 | 0.608 | 0.785 | 0.020 | 0.017 | 0.131 | 0.321 | 0.161 | 0.822 | 0.236 | 0.765 | 0.141 | 0.000 | 0.780 | 0.001 | 0.002 | 0.001 | 0.000 | 0.056 | 0.112  
 
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/FPN20.png" height=350 /> </p>  
+<img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/FPN8.png" height=200 > | <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/FPN20.png" height=200 >  
 
 
 #### Convert predictions to video:  
