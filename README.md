@@ -2,18 +2,6 @@
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/UNET_2x_stuttgart_01.gif" height=320 /> </p>  
 
-### Dependencies:  
-Again, I strongly suggest to use [Deepo](https://github.com/ufoym/deepo) as a simple experimental enviroment.  
-When you've done with your code - better build your own docker container and keep the last version on somewhere like [dockerhub](https://hub.docker.com/).  
-Anyway, here are some key dependencies for these repo:  
-```
-pip install --upgrade tqdm \
-                      torchsummary \
-                      albumentations==0.4.1 \
-                      torch==1.1.0 \ 
-                      torchvision==0.4.0
-```  
-
 ### Problem statement  
 The semantic segmentation problem itself well-known in the deep-learning community, and there are already several "state of the art" approaches to build such models. So basically we need fully-convolutional network with some pretrained backbone for feature extraction to "map" input image with given masks (let's say each output channel represents the individual class).  
 Here is example of cityscapes annotation:  
@@ -145,8 +133,7 @@ This process called "test-time augmentation" or simply **TTA**. The bad thing is
 *tsharpen is just (x_0^t + ... +x_i^t)/N*  
 
 I use simple arithmetic mean, but you can try, for instance, geometric mean, tsharpen and etc.  
-
-Detect and drop clusters...  
+As the post-processing step, I detect and replace clusters of certain area with background class, which leads to "jitter" effect on small and far masks (check out `/utils/utils.py-->DropClusters`).  
 
 ### Training results  
 
@@ -213,3 +200,15 @@ https://youtu.be/Wez8wFR3QOY - FPN 20 classes 02;
 ### Reference  
 
 Check out [this awesome](https://github.com/qubvel/segmentation_models.pytorch) repo with high-quality implementations of the basic semantic segmentation algorithms.  
+
+### Dependencies  
+Again, I strongly suggest to use [Deepo](https://github.com/ufoym/deepo) as a simple experimental enviroment.  
+When you've done with your code - better build your own docker container and keep the last version on somewhere like [dockerhub](https://hub.docker.com/).  
+Anyway, here are some key dependencies for these repo:  
+```
+pip install --upgrade tqdm \
+                      torchsummary \
+                      albumentations==0.4.1 \
+                      torch==1.1.0 \ 
+                      torchvision==0.4.0
+```  
