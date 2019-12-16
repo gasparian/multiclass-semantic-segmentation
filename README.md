@@ -83,7 +83,7 @@ Forward/backward pass size (MB): 4574.11
 Params size (MB): 97.61
 ```  
 
-As we can see, FPN segmentation model is a lot "lighter" (so faster to train).  
+As we can see, FPN segmentation model is a lot "lighter" (so faster to train and predict).  
 
 #### Logs  
 The last step before training, we can set up tensorboard (on CPU):  
@@ -105,11 +105,16 @@ Let's take a look at the each module in training/evaluation configuration:
  - `EVAL` - paths for storing the predictions, test-time augmentation, thresholds and etc.;  
 There is an example of config file in the root dir.  
 
-#### Train datasets  
+#### Datasets  
 
-
+Mostly, for training I've used fine-annotated part of cityscapes dataset (~3k examples). It also exists large amount of **coarse-annotated data**, and it is **obviosly sufficient for pre-training**, but I didn't consider this part of dataset in order to save time on training.  
+After training on cityscapes dataset (binary segmentation), you can easely use this model as initialization for kitti dataset to segment road/lanes.  
+I've implemented all dataset-specific preprocessing in `cityscapes_utils.py` and `kitti_lane_utils.py` scripts.  
 
 #### Loss and metric  
+
+I used the [dice loss (also known as F1 score)](https://lars76.github.io/neural-networks/object-detection/losses-for-segmentation/) as default metric. In segmentation problems it's usually applied intersection over union and dice metrics foe evaluation. They're positively correlated, but dice coefficient tends to measure some average performance for all classes and examples. Here is a nice visualization of IoU:  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/0_kraYHnYpoJOhaMzq.png" height=320 /> </p>  
 
 https://github.com/gasparian/PicsArtHack-binary-segmentation  
 https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31  
@@ -138,7 +143,7 @@ This process called "test-time augmentation" or simply **TTA**. The bad thing is
 
 *tsharpen is just (x_0^t + ... +x_i^t)/N*  
 
-I use simple arithmetic mean, but you can try, for instance, gemetric mean, tsharpen and etc.  
+I use simple arithmetic mean, but you can try, for instance, geometric mean, tsharpen and etc.  
 
 ### Training results  
 
@@ -240,3 +245,7 @@ https://youtu.be/rkm6OpPCZY0 - UNET 20 classes 02;
 https://youtu.be/DzyLExn0M54 - FPN 20 classes 00;  
 https://youtu.be/OJyR_4U7PV8 - FPN 20 classes 01;  
 https://youtu.be/Wez8wFR3QOY - FPN 20 classes 02;  
+
+### Reference  
+
+Check out [this awesome](https://github.com/qubvel/segmentation_models.pytorch) repo with high-quality implementations of the basic semantic segmentation algorithms.  
