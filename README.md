@@ -113,8 +113,8 @@ I've implemented all dataset-specific preprocessing in `cityscapes_utils.py` and
 
 #### Loss and metric  
 
-I used the [dice loss (also known as F1 score)](https://lars76.github.io/neural-networks/object-detection/losses-for-segmentation/) as default metric. In segmentation problems it's usually applied intersection over union and dice metrics foe evaluation. They're positively correlated, but dice coefficient tends to measure some average performance for all classes and examples. Here is a nice visualization of IoU:  
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/0_kraYHnYpoJOhaMzq.png" height=320 /> </p>  
+I used the [dice loss (also equals to F1 score)](https://lars76.github.io/neural-networks/object-detection/losses-for-segmentation/) as default metric. In segmentation problems it's usually applied intersection over union and dice metrics foe evaluation. They're positively correlated, but dice coefficient tends to measure some average performance for all classes and examples. Here is a nice visualization of IoU:  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/0_kraYHnYpoJOhaMzq.png" height=200 /> </p>  
 
 https://github.com/gasparian/PicsArtHack-binary-segmentation  
 https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31  
