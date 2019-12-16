@@ -114,12 +114,12 @@ I've implemented all dataset-specific preprocessing in `cityscapes_utils.py` and
 #### Loss and metric  
 
 I used the [dice loss (also equals to F1 score)](https://lars76.github.io/neural-networks/object-detection/losses-for-segmentation/) as default metric. In segmentation problems it's usually applied intersection over union and dice metrics foe evaluation. They're positively correlated, but dice coefficient tends to measure some average performance for all classes and examples. Here is a nice visualization of IoU:  
+
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/0_kraYHnYpoJOhaMzq.png" height=200 /> </p>  
 
-https://github.com/gasparian/PicsArtHack-binary-segmentation  
-https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31  
+Now about the loss - I used weighted sum of binary cross-enthropy and dice loss, as in binary classification [here](https://github.com/gasparian/PicsArtHack-binary-segmentation). BCE was calculated on logits for [numerical stability](https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31).  
 
-#### Augmentations  
+#### Augmentations and post-processing  
 
 Augmentation is a well-established technique for dataset extension. What we do, is slightly modifing both the image and mask. Here, I apply augmentations "on the fly" along with batch generation, via the best known library [albumentations](https://github.com/albumentations-team/albumentations).  
 Usually I end up with some mix of a couple spatial and RGB augmentations: like crops/flip + random contrast/brightness (you can check out it in `./utils/cityscapes_utils.py`).  
@@ -139,11 +139,14 @@ Previous augmented image with random rain, light beam and snow:
 
 Another way to use augmentations to increase model performance, is to apply some "soft" affine transformations like flips and then average the predictions results (Once I read the great analogy on how a human can look at the image from different angles and better understand what is shown there).  
 This process called "test-time augmentation" or simply **TTA**. The bad thing is that we need to make predictions `N_images X N_transforms` times. Here is some visual explanation on how this works:  
+
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/temp_TTA.png" height=350 /> </p>  
 
 *tsharpen is just (x_0^t + ... +x_i^t)/N*  
 
 I use simple arithmetic mean, but you can try, for instance, geometric mean, tsharpen and etc.  
+
+Detect and drop clusters...  
 
 ### Training results  
 
@@ -158,69 +161,24 @@ Classes #                     | Unet   | FPN   | Size
 8 classes (categories only)   | 0.929  | 0.931 | 256x512 >> 512x1024
 20 classes                    | 0.852  | 0.858 | 128x256  
 
-FPN_2x_8_classes_dice:  
-void  :  0.7695179785163998  
-flat  :  0.954101561116547  
-construction  :  0.8899592300224257  
-object  :  0.5734900928794959  
-nature  :  0.885317928184811  
-sky  :  0.8046623786736248  
-human  :  0.4921543036595497  
-vehicle  :  0.8968075312737721  
+8 classes:  
 
-UNET_2x_8_classes_dice:  
-void  :  0.7503326485044927  
-flat  :  0.9580260481589877  
-construction  :  0.8878791209596855  
-object  :  0.5612115702635612  
-nature  :  0.8840065234129783  
-sky  :  0.8060234629732167  
-human  :  0.4799864852331326  
-vehicle  :  0.8903183527131622  
+Model  | void   | flat   | construction | object | nature | sky   | human | vehicle
+:-----:|:------:|:------:|:------------:|:------:|:------:|:-----:|:-----:|:-------:
+FPN    | 0.769  | 0.954  | 0.889        | 0.573  | 0.885  | 0.804 | 0.492 | 0.897  
+UNET   | 0.750  | 0.958  | 0.888        | 0.561  | 0.884  | 0.806 | 0.479 | 0.890  
 
-FPN_2x_20_classes:  
-road  :  0.9432397028638249  
-sidewalk  :  0.5622089075280429  
-building  :  0.776923839396073  
-wall  :  0.010887374767126182  
-fence  :  0.04605165484807112  
-pole  :  0.041541812083839134  
-traffic light  :  0.31800822675761453  
-traffic sign  :  0.12762602770190618  
-vegetation  :  0.808517172055431  
-terrain  :  0.17795670616209633  
-sky  :  0.7475589540906442  
-person  :  0.1321830293888019  
-rider  :  0.013297597471720133  
-car  :  0.7588354995123979  
-truck  :  0.009891424920314399  
-bus  :  0.02247226849580422  
-train  :  0.01321079940495328  
-motorcycle  :  0.0048342461769397445  
-bicycle  :  0.07201767711518094  
-unlabeled  :  0.21634189388127684  
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/FPN8.png" height=350 /> </p>  
 
-UNET_2x_20_classes:  
-road  :  0.9440436809490891  
-sidewalk  :  0.6084449825760638  
-building  :  0.7850691959325576  
-wall  :  0.019558298548794963  
-fence  :  0.017106216898363117  
-pole  :  0.13096931348880647  
-traffic light  :  0.3214971764570376  
-traffic sign  :  0.16104014005519948  
-vegetation  :  0.8217051051527201  
-terrain  :  0.23579725361838122  
-sky  :  0.7654560399870592  
-person  :  0.14140093144525379  
-rider  :  0.0  
-car  :  0.7803748280383065  
-truck  :  0.0009775121369932451  
-bus  :  0.001516195561271161  
-train  :  0.0005903021048388293  
-motorcycle  :  0.0  
-bicycle  :  0.05624527321097592  
-unlabeled  :  0.11189124864485293  
+20 classes:  
+
+Model  | road   | sidewalk   | building | wall | fence | pole   | traffic light | traffic sign | vegetation | terrain | sky | person | rider | car | truck | bus | train | motorcycle | bicycle | unlabeled  
+:-----:|:------:|:------:|:------------:|:------:|:------:|:-----:|:-----:|:-------:
+FPN    | 0.943  | 0.562  | 0.777        | 0.011  | 0.046  | 0.041 | 0.318 | 0.128 | 0.808 | 0.178 | 0.747 | 0.132 | 0.0132 | 0.759 | 0.010 | 0.022 | 0.013 | 0.005 | 0.072 | 0.216  
+UNET   | 0.944 | 0.608 | 0.785 | 0.020 | 0.017 | 0.131 | 0.321 | 0.161 | 0.822 | 0.236 | 0.765 | 0.141 | 0.000 | 0.780 | 0.001 | 0.002 | 0.001 | 0.000 | 0.056 | 0.112  
+
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/FPN20.png" height=350 /> </p>  
+
 
 #### Convert predictions to video:  
 
@@ -229,6 +187,14 @@ ffmpeg -f image2 -framerate 20 \
        -pattern_type glob -i 'stuttgart_00_*.png' \
        -c:v libx264 -pix_fmt yuv420p ../stuttgart_00.mp4
 ```  
+
+https://youtu.be/dHnidGY_Lwc - UNET 2 classes 00;  
+https://youtu.be/RURCE3K7OeA - UNET 2 classes 01;  
+https://youtu.be/OrAe5DiYWQk - UNET 2 classes 02;  
+
+https://youtu.be/RUu6upRSi20 - FPN 2 classes 00;  
+https://youtu.be/innUjjzpQ8s - FPN 2 classes 01;  
+https://youtu.be/cGZTEw16rQg - FPN 2 classes 02;  
 
 https://youtu.be/hmIV17M7Gf8 - UNET 8 classes 00;  
 https://youtu.be/lW43CHLNL5k - UNET 8 classes 01;  
