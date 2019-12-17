@@ -14,7 +14,7 @@ Also, I want to give an idea of where we can use these semantic masks in the sel
 
 ### Unet vs Feature Pyramid Network  
 
-Both UNET and FPN uses features from the different scales with skip-connections and I'll quote really insightful words from the web about the difference between UNet and FPN:  
+Both UNET and FPN uses features from the different scales and I'll quote really insightful words from the web about the difference between UNet and FPN:  
 ```  
 ...
  The main difference is that there is multiple prediction layers: one for each upsampling layer. 
