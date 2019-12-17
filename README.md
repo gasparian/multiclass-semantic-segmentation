@@ -96,6 +96,10 @@ Let's take a look at the each module in training/evaluation configuration:
  - `TRAINING` - here are all training process properties: GPUs, loss, metric, class weights and etc.;  
  - `EVAL` - paths to store the predictions, test-time augmentation, flag, thresholds and etc.;  
 There is an example of config file in the root dir.  
+To use different configs, just pass them to the train/eval scripts as arguments:  
+```
+python train.py --config_path ./train_config.yaml
+```  
 
 #### Datasets  
 
