@@ -207,6 +207,7 @@ Anyway, here are some key dependencies for these repo:
 ```
 pip install --upgrade tqdm \
                       torchsummary \
+                      tensorboardX \
                       albumentations==0.4.1 \
                       torch==1.1.0 \ 
                       torchvision==0.4.0
