@@ -37,10 +37,12 @@ To get model's short summary, I prefer using [torchsummary](https://github.com/s
 Torchsummary lib may require little hack to be able to work with FPN inplementation.  
 Make the folowing edits into the `torchsummary.py`:  
 ```
+...
 try:
     summary[m_key]["input_shape"] = list(input[0].size()) 
 except:
     summary[m_key]["input_shape"] = list(input[0][0].size()) 
+...
 ```  
 Example (you will see the results in the stdout):  
 ```
