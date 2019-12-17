@@ -115,7 +115,7 @@ BCE was calculated on logits for [numerical stability](https://towardsdatascienc
 
 #### Augmentations and post-processing  
 
-Augmentation is a well-established technique for dataset extension. What we do, is slightly modifying both the image and mask. Here, I apply augmentations "on the fly" along with the batch generation, via the best-known library [albumentations](https://github.com/albumentations-team/albumentations).  
+Augmentation is a well-established technique for dataset extension. What we do, is slightly modifying both the image and the mask. Here, I apply augmentations "on the fly" along with the batch generation, via the best-known library [albumentations](https://github.com/albumentations-team/albumentations).  
 Usually, I end up with some mix of a couple spatial and RGB augmentations: like crops/flip + random contrast/brightness (you can check out it in `./utils/cityscapes_utils.py`).  
 Also, sometimes you want to apply really hard augs, to imitate images from other "conditions distribution", like snow, shadows, rain and etc. Albumentations gives you that possibility via [this code](https://github.com/UjjwalSaxena/Automold--Road-Augmentation-Library).  
 
