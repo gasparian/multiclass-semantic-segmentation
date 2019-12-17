@@ -110,7 +110,7 @@ I've implemented all dataset-specific preprocessing in `cityscapes_utils.py` and
 
 #### Loss and metric  
 
-I used the [dice loss (which is equivalent to the F1 score)](https://lars76.github.io/neural-networks/object-detection/losses-for-segmentation/) as a default metric. In segmentation problems, it's usually applied intersection over union and dice metrics for evaluation. They're positively correlated, but the dice coefficient tends to measure some average performance for all classes and examples. Here is a nice visualization of IoU (on the left) and dice (on the right):  
+I used the [dice loss (which is equivalent to the F1 score)](https://lars76.github.io/neural-networks/object-detection/losses-for-segmentation/) as a default metric. In segmentation problems, it's usually applied intersection over union and dice metrics for evaluation. They're positively correlated, but the dice coefficient tends to measure some average performance for all classes and examples. Here is a nice visualization of **IoU (on the left)** and **dice (on the right)**:  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/random - New frame.jpg" height=200 /> </p>  
 
