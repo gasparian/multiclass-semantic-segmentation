@@ -139,7 +139,7 @@ This process called "test-time augmentation" or simply **TTA**. The bad thing is
 
 *tsharpen is just (x_0^t + ... +x_i^t)/N*  
 
-I use simple arithmetic mean, but you can try, for instance, geometric mean, tsharpen and etc.  
+I use simple arithmetic mean, but you can try, for instance, geometric mean, tsharpen and etc. Chek the code here: `/utils/TTA.py`.  
 As the post-processing step, I detect and replace clusters of a certain area with background class, which leads to a "jitter" effect on a small and far situated masks (check out `/utils/utils.py-->DropClusters`).  
 
 ### Training results  
