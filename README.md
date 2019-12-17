@@ -3,13 +3,14 @@
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/UNET_2x_stuttgart_01.gif" height=320 /> </p>  
 
 ### Problem statement  
-The semantic segmentation problem itself well-known in the deep-learning community, and there are already several "state of the art" approaches to build such models. So basically we need fully-convolutional network with some pretrained backbone for feature extraction to "map" input image with given masks (let's say each output channel represents the individual class).  
-Here is example of cityscapes annotation:  
+
+The semantic segmentation is no more than pixel-level classification and is well-known in the deep-learning community, and there are already several "state of the art" approaches to building such models. So basically we need a fully-convolutional network with some pretrained backbone for feature extraction to "map" input image with given masks (let's say, each output channel represents the individual class).  
+Here is an example of cityscapes annotation:  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (72).png" height=300 /> </p>  
 
 In this repo I wanted to show a way to train two most popular architectures - UNET and FPN (with pretty large resnext50 encoders).  
-Also, I want to give an idea of where we can use these semantic masks in self-driving/robotics field: one of the **use cases** can be **generating "prior" for pointclouds clustering algorihms**. But you can ask a quastion: why is semantic segmentation, when at this case it's better to use panoptic/instance segmentation? Well, my answer will be: semantic segmentation models is a lot more simplier to understand and train, including the computational resources consumption ;)  
+Also, I want to give an idea of where we can use these semantic masks in the self-driving/robotics field: one of the **use cases** can **be generating "prior" for point cloud clustering** algorithms. But you can ask a question: why is semantic segmentation when in this case it's better to use panoptic/instance segmentation? Well, my answer will be: semantic segmentation models are a lot simpler to understand and train, including the computational resources consumption.  
 
 ### Unet vs Feature Pyramid Network  
 
@@ -20,13 +21,13 @@ Both UNET and FPN uses features from the different scales with skip-connections 
  Like the U-Net, the FPN has laterals connection between the bottom-up pyramid (left) and the top-down pyramid (right).
  But, where U-net only copy the features and append them, FPN apply a 1x1 convolution layer before adding them. 
  This allows the bottom-up pyramid called “backbone” to be pretty much whatever you want.  
- ...
+...
 ```  
-Check out [this UNET paper](https://arxiv.org/pdf/1505.04597.pdf), which also gives the idea of separating instances.  
+Check out [the UNET paper](https://arxiv.org/pdf/1505.04597.pdf), which also gives the idea of separating instances (with borders predictions).  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/1_dKPBgCdJx6zj3MpED3lcNA.png" height=384 /> </p>
 
-And this [presentation](http://presentations.cocodataset.org/COCO17-Stuff-FAIR.pdf) from the [FPN paper](https://arxiv.org/pdf/1901.02446.pdf) authors.  
+And [this presentation](http://presentations.cocodataset.org/COCO17-Stuff-FAIR.pdf) from the [FPN paper](https://arxiv.org/pdf/1901.02446.pdf) authors.  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-12-09 18-35-14.png" height=384 /> </p>
 
@@ -74,58 +75,61 @@ Params size (MB): 97.61
 As we can see, FPN segmentation model is a lot "lighter" (so faster to train and predict).  
 
 #### Logs  
-The last step before training, we can set up tensorboard (on CPU):  
+To monitor the training process, we can set up tensorboard (on CPU):  
 ```
 CUDA_VISIBLE_DEVICES="" tensorboard --logdir /samsung_drive/semantic_segmentation/%MDOEL_DIR%/tensorboard  
 ```  
 Here are examples of typical training process (Unet for all cityscapes classes):  
-<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-33.png" height=250 />  <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-41.png" height=250 />  </p>
+<p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-33.png" height=250 />  <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-41.png" height=250 />  </p>  
 
 ### Training configuration  
-Core functionality implemented in `Trainer` class (`./utils/trainer.py`).  
+
+Core functionality is implemented in `Trainer` class (`./utils/trainer.py`).  
 The training/evaluating pipeline is straight-forward: you just need to fill out the `train_config.yaml` according to the selected model and dataset.  
 Let's take a look at the each module in training/evaluation configuration:  
- - `TARGET` - the dataset you want to train on - it affect the preprocessing stage;  
+ - `TARGET` - the dataset you want to train on - it affect the preprocessing stage (`cityscapes` or `kitti`);  
  - `PATH` - it's just the paths to train, validation and test datasets;  
  - `DATASET` - here we must set the image sizes, select classes to train and control augmentations;  
  - `MODEL` - declare model type, backbone and number of classes (affects the last layers of network);  
- - `TRAINING` - here are all optimization process properties: loss, metric, class weights and etc.;  
- - `EVAL` - paths for storing the predictions, test-time augmentation, thresholds and etc.;  
+ - `TRAINING` - here are all training process properties: GPUs, loss, metric, class weights and etc.;  
+ - `EVAL` - paths to store the predictions, test-time augmentation, flag, thresholds and etc.;  
 There is an example of config file in the root dir.  
 
 #### Datasets  
 
-Mostly, for training I've used fine-annotated part of cityscapes dataset (~3k examples). It also exists large amount of **coarse-annotated data**, and it is **obviosly sufficient for pre-training**, but I didn't consider this part of dataset in order to save time on training.  
-After training on cityscapes dataset (binary segmentation), you can easely use this model as initialization for kitti dataset to segment road/lanes.  
+For training, I've mostly used a fine-annotated part of the cityscapes dataset (~3k examples). It also exists a large amount of **coarse-annotated data**, and it is **obviously sufficient for pre-training**, but I didn't consider this part of the dataset in order to save time on training.  
+After training on the cityscapes dataset (in case of road segmentation), you can easily use this model as initialization for the Kitti dataset to segment road/lanes.  
 I've implemented all dataset-specific preprocessing in `cityscapes_utils.py` and `kitti_lane_utils.py` scripts.  
 
 #### Loss and metric  
 
-I used the [dice loss (also equals to F1 score)](https://lars76.github.io/neural-networks/object-detection/losses-for-segmentation/) as default metric. In segmentation problems it's usually applied intersection over union and dice metrics foe evaluation. They're positively correlated, but dice coefficient tends to measure some average performance for all classes and examples. Here is a nice visualization of IoU:  
+I used the [dice loss (which is equivalent to the F1 score)](https://lars76.github.io/neural-networks/object-detection/losses-for-segmentation/) as a default metric. In segmentation problems, it's usually applied intersection over union and dice metrics for evaluation. They're positively correlated, but the dice coefficient tends to measure some average performance for all classes and examples. Here is a nice visualization of IoU:  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/0_kraYHnYpoJOhaMzq.png" height=200 /> </p>  
 
-Now about the loss - I used weighted sum of binary cross-enthropy and dice loss, as in binary classification [here](https://github.com/gasparian/PicsArtHack-binary-segmentation). BCE was calculated on logits for [numerical stability](https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31).  
+Now about the loss - I used weighted sum of binary cross-entropy and dice loss, as in binary classification [here](https://github.com/gasparian/PicsArtHack-binary-segmentation). You may also easily use IoU instead of dice since their implementation is very similar.  
+BCE was calculated on logits for [numerical stability](https://towardsdatascience.com/sigmoid-activation-and-binary-crossentropy-a-less-than-perfect-match-b801e130e31).  
 
 #### Augmentations and post-processing  
 
-Augmentation is a well-established technique for dataset extension. What we do, is slightly modifing both the image and mask. Here, I apply augmentations "on the fly" along with batch generation, via the best known library [albumentations](https://github.com/albumentations-team/albumentations).  
-Usually I end up with some mix of a couple spatial and RGB augmentations: like crops/flip + random contrast/brightness (you can check out it in `./utils/cityscapes_utils.py`).  
+Augmentation is a well-established technique for dataset extension. What we do, is slightly modifying both the image and mask. Here, I apply augmentations "on the fly" along with the batch generation, via the best-known library [albumentations](https://github.com/albumentations-team/albumentations).  
+Usually, I end up with some mix of a couple spatial and RGB augmentations: like crops/flip + random contrast/brightness (you can check out it in `./utils/cityscapes_utils.py`).  
 Also, sometimes you want to apply really hard augs, to imitate images from other "conditions distribution", like snow, shadows, rain and etc. Alnumentations gives you that possibility via [this code](https://github.com/UjjwalSaxena/Automold--Road-Augmentation-Library).  
-Here is original image:  
+
+Here is an original image:  
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (73).png" height=320 /> </p>  
 
-Here is "darkened" flipped and slightly cropped image:  
+Here is a "darkened" flipped and slightly cropped image:  
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (79).png" height=320 /> </p>  
 
-Previous augmented image with random rain, light beam and snow:  
+This is a previous augmented image with random rain, light beam, and snow:  
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (74).png" height=320 /> </p>  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (76).png" height=320 /> </p>  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (77).png" height=320 /> </p>  
 
-Another way to use augmentations to increase model performance, is to apply some "soft" affine transformations like flips and then average the predictions results (Once I read the great analogy on how a human can look at the image from different angles and better understand what is shown there).  
+Another way to use augmentations to increase model performance is to apply some "soft" affine transformations like flips and then average the results of the predictions (Once I read the great analogy on how a human can look at the image from different angles and better understand what is shown there).  
 This process called "test-time augmentation" or simply **TTA**. The bad thing is that we need to make predictions `N_images X N_transforms` times. Here is some visual explanation on how this works:  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/temp_TTA.png" height=350 /> </p>  
@@ -133,11 +137,11 @@ This process called "test-time augmentation" or simply **TTA**. The bad thing is
 *tsharpen is just (x_0^t + ... +x_i^t)/N*  
 
 I use simple arithmetic mean, but you can try, for instance, geometric mean, tsharpen and etc.  
-As the post-processing step, I detect and replace clusters of certain area with background class, which leads to "jitter" effect on small and far masks (check out `/utils/utils.py-->DropClusters`).  
+As the post-processing step, I detect and replace clusters of a certain area with background class, which leads to a "jitter" effect on small and far masks (check out `/utils/utils.py-->DropClusters`).  
 
 ### Training results  
 
-Here I took the best of the 40 epochs of training on 2x down-sized images (512x1024) for 2 and 8 classes and 8x down-sized images for 20 classes (to fir the batch into GPU's memory).  
+Here I took the best of the 40 epochs of training on 2x down-sized images (512x1024) for 2 and 8 classes and 8x down-sized images for 20 classes (to fit the batch into GPU's memory).  
 Models for 2-8 classes were trained in two stages: on smaller images at first - 256x512 and then only 2x resized - 512x1024.  
 
 Dice metric comparison table:  
@@ -150,28 +154,26 @@ Classes #                     | Unet   | FPN   | Size
 
 8 classes:  
 
-Model  | void   | flat   | construction | object | nature | sky   | human | vehicle
-:-----:|:------:|:------:|:------------:|:------:|:------:|:-----:|:-----:|:-------:
-FPN    | 0.769  | 0.954  | 0.889        | 0.573  | 0.885  | 0.804 | 0.492 | 0.897  
-UNET   | 0.750  | 0.958  | 0.888        | 0.561  | 0.884  | 0.806 | 0.479 | 0.890  
+Model  | void       | flat   | construction | object     | nature | sky   | human     | vehicle
+:-----:|:----------:|:------:|:------------:|:----------:|:------:|:-----:|:---------:|:-------:
+FPN    | **0.769**  | 0.954  | 0.889        | **0.573**  | 0.885  | 0.804 | **0.492** | 0.897  
+UNET   | **0.750**  | 0.958  | 0.888        | **0.561**  | 0.884  | 0.806 | **0.479** | 0.890  
 
 20 classes:  
 
-Model  | road   | sidewalk   | building | wall | fence | pole   | traffic light | traffic sign | vegetation | terrain | sky | person | rider | car | truck | bus | train | motorcycle | bicycle | unlabeled  
-:-----:|:------:|:------:|:------------:|:------:|:------:|:-----:|:-----:|:-------:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:
-FPN    | 0.943  | 0.562  | 0.777        | 0.011  | 0.046  | 0.041 | 0.318 | 0.128 | 0.808 | 0.178 | 0.747 | 0.132 | 0.0132 | 0.759 | 0.010 | 0.022 | 0.013 | 0.005 | 0.072 | 0.216  
-UNET   | 0.944 | 0.608 | 0.785 | 0.020 | 0.017 | 0.131 | 0.321 | 0.161 | 0.822 | 0.236 | 0.765 | 0.141 | 0.000 | 0.780 | 0.001 | 0.002 | 0.001 | 0.000 | 0.056 | 0.112  
+Model  | road   | sidewalk   | building     | wall      | fence      | pole      | traffic light | traffic sign | vegetation | terrain   | sky   | person | rider      | car   | truck     | bus       | train     | motorcycle | bicycle | unlabeled  
+:-----:|:------:|:----------:|:------------:|:---------:|:----------:|:---------:|:-------------:|:------------:|:----------:|:---------:|:-----:|:------:|:----------:|:-----:|:---------:|:---------:|:---------:|:----------:|:-------:|:---------:
+FPN    | 0.943  | 0.562      | 0.777        | 0.011     | **0.046**  | 0.041     | 0.318         | 0.128        | 0.808      | 0.178     | 0.747 | 0.132  | **0.0132** | 0.759 | **0.010** | **0.022** | **0.013** | **0.005**  | 0.072   | **0.216**  
+UNET   | 0.944  | 0.608      | 0.785        | **0.020** | 0.017      | **0.131** | 0.321         | **0.161**    | 0.822      | **0.236** | 0.765 | 0.141  | 0.000      | 0.780 | 0.001     | 0.002     | 0.001     | 0.000      | 0.056   | 0.112  
 
 <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/FPN8.png" height=280 >  <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/FPN20.png" height=280 >  
 
+So what is interesting, that I expected to see better performance on multiclass problems by FPN architecture, but the thing is on average both UNET and FPN gives pretty close dice metric.  
+Yes, there are a couple of classes that the FPN segmentation model detects better (marked in the table), but the absolute dice metric values of such classes, are not so high.  
+But in general, if you're dealing with some generic segmentation problem with pretty large, nicely separable objects - it seems that the **FPN could be a good choice for both binary and multiclass segmentation** in terms of segmentation quality and computational effectiveness.  
 
-#### Convert predictions to video:  
+#### Prediction on cityscapes demo videos (Stuttgart):  
 
-```
-ffmpeg -f image2 -framerate 20 \
-       -pattern_type glob -i 'stuttgart_00_*.png' \
-       -c:v libx264 -pix_fmt yuv420p ../stuttgart_00.mp4
-```  
 UNET, 2 classes: [00](https://youtu.be/dHnidGY_Lwc), [01](https://youtu.be/RURCE3K7OeA), [02](https://youtu.be/OrAe5DiYWQk).  
 FPN, 2 classes: [00](https://youtu.be/RUu6upRSi20), [01](https://youtu.be/innUjjzpQ8s), [02](https://youtu.be/cGZTEw16rQg).  
 UNET, 8 classes: [00](https://youtu.be/hmIV17M7Gf8), [01](https://youtu.be/lW43CHLNL5k), [02](https://youtu.be/a2HjDz_IMMg).  
@@ -179,11 +181,19 @@ FPN, 8 classes: [00](https://youtu.be/7qGSZ9XypkE), [01](https://youtu.be/6Phdoa
 UNET, 20 classes: [00](https://youtu.be/EpN4Jx60pXI), [01](https://youtu.be/X1Oa2x5BAkg), [02](https://youtu.be/rkm6OpPCZY0).  
 FPN, 20 classes: [00](https://youtu.be/DzyLExn0M54), [01](https://youtu.be/OJyR_4U7PV8), [02](https://youtu.be/Wez8wFR3QOY).  
 
+I used `ffmpeg` for doing that on Linux:  
+```
+ffmpeg -f image2 -framerate 20 \
+       -pattern_type glob -i 'stuttgart_00_*.png' \
+       -c:v libx264 -pix_fmt yuv420p ../stuttgart_00.mp4
+```  
+
 ### Reference  
 
 Check out [this awesome](https://github.com/qubvel/segmentation_models.pytorch) repo with high-quality implementations of the basic semantic segmentation algorithms.  
 
-### Dependencies  
+### Reproducibility  
+
 Again, I strongly suggest to use [Deepo](https://github.com/ufoym/deepo) as a simple experimental enviroment.  
 When you've done with your code - better build your own docker container and keep the last version on somewhere like [dockerhub](https://hub.docker.com/).  
 Anyway, here are some key dependencies for these repo:  
