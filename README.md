@@ -10,7 +10,7 @@ Here is an example of cityscapes annotation:
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (72).png" height=300 /> </p>  
 
 In this repo I wanted to show a way to train two most popular architectures - UNET and FPN (with pretty large resnext50 encoders).  
-Also, I want to give an idea of where we can use these semantic masks in the self-driving/robotics field: one of the **use cases** can **be generating "prior" for point cloud clustering** algorithms. But you can ask a question: why is semantic segmentation when in this case it's better to use panoptic/instance segmentation? Well, my answer will be: semantic segmentation models are a lot simpler to understand and train, including the computational resources consumption.  
+Also, I want to give an idea of where we can use these semantic masks in the self-driving/robotics field: one of the **use cases** can be **generating "prior" for point cloud clustering** algorithms. But you can ask a question: why is semantic segmentation when in this case it's better to use panoptic/instance segmentation? Well, my answer will be: semantic segmentation models are a lot simpler to understand and train, including the computational resources consumption.  
 
 ### Unet vs Feature Pyramid Network  
 
