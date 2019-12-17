@@ -99,6 +99,7 @@ There is an example of config file in the root dir.
 
 For training, I've mostly used a fine-annotated part of the cityscapes dataset (~3k examples). It also exists a large amount of **coarse-annotated data**, and it is **obviously sufficient for pre-training**, but I didn't consider this part of the dataset in order to save time on training.  
 After training on the cityscapes dataset (in case of road segmentation), you can easily use this model as initialization for the Kitti dataset to segment road/lanes.  
+The cityscapes dataset also gives you a choice to use all classes or categories - as classes aggregated by certain properties.  
 I've implemented all dataset-specific preprocessing in `cityscapes_utils.py` and `kitti_lane_utils.py` scripts.  
 
 #### Loss and metric  
