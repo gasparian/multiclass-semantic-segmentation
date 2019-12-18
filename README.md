@@ -136,7 +136,7 @@ This is a previous augmented image with random rain, light beam, and snow:
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (77).png" height=320 /> </p>  
 
-Another way to use augmentations to increase model performance is to apply some "soft" affine transformations like flips and then average the results of the predictions (Once I read the great analogy on how a human can look at the image from different angles and better understand what is shown there).  
+Another way to use augmentations to increase model performance is to apply some "soft" **deterministic** affine transformations like flips and then average the results of the predictions (Once I read the great analogy on how a human can look at the image from different angles and better understand what is shown there).  
 This process called "test-time augmentation" or simply **TTA**. The bad thing is that we need to make predictions `N_images X N_transforms` times. Here is some visual explanation on how this works:  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/temp_TTA.png" height=350 /> </p>  
