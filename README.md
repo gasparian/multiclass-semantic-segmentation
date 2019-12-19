@@ -4,13 +4,13 @@
 
 ### Problem statement  
 
-The semantic segmentation is no more than pixel-level classification and is well-known in the deep-learning community, and there are already several "state of the art" approaches to building such models. So basically we need a fully-convolutional network with some pretrained backbone for feature extraction to "map" input image with given masks (let's say, each output channel represents the individual class).  
+Semantic segmentation is no more than pixel-level classification and is well-known in the deep-learning community. There are several "state of the art" approaches for building such models. So basically we need a fully-convolutional network with some pretrained backbone for feature extraction to "map" input image with given masks (let's say, each output channel represents the individual class).  
 Here is an example of cityscapes annotation:  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (72).png" height=300 /> </p>  
 
-In this repo I wanted to show a way to train two most popular architectures - UNET and FPN (with pretty large resnext50 encoders).  
-Also, I want to give an idea of where we can use these semantic masks in the self-driving/robotics field: one of the **use cases** can be **generating "prior" for point cloud clustering** algorithms. But you can ask a question: why is semantic segmentation when in this case it's better to use panoptic/instance segmentation? Well, my answer will be: semantic segmentation models are a lot simpler to understand and train, including the computational resources consumption.  
+At this repo I want to show a way to train two most popular architectures - UNET and FPN (with pretty large `resnext50` encoders).  
+Also, I want to give an idea of where we can use these semantic masks in the self-driving/robotics field: one of the **use cases** can be **generating "prior" for point cloud clustering** algorithms. But you can ask a question: why is semantic segmentation when in this case it's better to use panoptic/instance segmentation? Well, my answer will be: semantic segmentation models are a lot simpler and faster to understand and train.  
 
 ### Unet vs Feature Pyramid Network  
 
@@ -23,7 +23,7 @@ Both UNET and FPN uses features from the different scales and I'll quote really 
  This allows the bottom-up pyramid called “backbone” to be pretty much whatever you want.  
 ...
 ```  
-Check out [the UNET paper](https://arxiv.org/pdf/1505.04597.pdf), which also gives the idea of separating instances (with borders predictions).  
+Check out [the UNET paper](https://arxiv.org/pdf/1505.04597.pdf), which also gives the idea on separating instances (with borders predictions).  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/1_dKPBgCdJx6zj3MpED3lcNA.png" height=384 /> </p>
 
@@ -34,7 +34,7 @@ And [this presentation](http://presentations.cocodataset.org/COCO17-Stuff-FAIR.p
 #### Models size (with default parameters and same encoders)  
 
 To get model's short summary, I prefer using [torchsummary](https://github.com/sksq96/pytorch-summary).  
-Torchsummary lib may require little hack to be able to work with FPN inplementation.  
+Torchsummary lib may require little hack to be able to work with FPN implementation.  
 Make the folowing edits into the `torchsummary.py`:  
 ```
 ...
@@ -81,6 +81,7 @@ To monitor the training process, we can set up tensorboard (on CPU):
 ```
 CUDA_VISIBLE_DEVICES="" tensorboard --logdir /samsung_drive/semantic_segmentation/%MDOEL_DIR%/tensorboard  
 ```  
+Logs are sending from the main training loop in `Trainer` class.  
 Here are examples of typical training process (Unet for all cityscapes classes):  
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-33.png" height=250 />  <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/Screenshot from 2019-11-23 17-00-41.png" height=250 />  </p>  
 
@@ -136,8 +137,8 @@ This is a previous augmented image with random rain, light beam, and snow:
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/download (77).png" height=320 /> </p>  
 
-Another way to use augmentations to increase model performance is to apply some "soft" **deterministic** affine transformations like flips and then average the results of the predictions (Once I read the great analogy on how a human can look at the image from different angles and better understand what is shown there).  
-This process called "test-time augmentation" or simply **TTA**. The bad thing is that we need to make predictions `N_images X N_transforms` times. Here is some visual explanation on how this works:  
+Another way to use augmentations to increase model performance is to apply some "soft" **deterministic** affine transformations like flips and then average the results of the predictions (I've read the great analogy on how a human can look at the image from different angles and better understand what is shown there).  
+This process called **test-time augmentation** or simply **TTA**. The bad thing is that we need to make predictions for each transform, which leads to larger inference time. Here is some visual explanation on how this works:  
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/temp_TTA.png" height=350 /> </p>  
 
