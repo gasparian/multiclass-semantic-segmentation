@@ -147,7 +147,7 @@ This process called **test-time augmentation** or simply **TTA**. The bad thing 
 I use simple arithmetic mean, but you can try, for instance, geometric mean, tsharpen and etc. Chek the code here: `/utils/TTA.py`.  
 As the post-processing step, I detect and replace clusters of a certain area with background class, which leads to a "jitter" effect on a small and far situated masks (check out `/utils/utils.py-->DropClusters`).  
 
-### Training results  
+### Training results and weights  
 
 Here I took the best of the 40 epochs of training on 2x down-sized images (512x1024) for 2 and 8 classes and 8x down-sized images for 20 classes (to fit the batch into GPU's memory).  
 Models for 2-8 classes were trained in two stages: on smaller images at first - 256x512 and then only 2x resized - 512x1024.  
@@ -156,9 +156,9 @@ Dice metric comparison table:
 
 Classes #                     | Unet   | FPN   | Size
 :----------------------------:|:------:|:-----:|:----:
-2 classes (road segmentation) | 0.956  | 0.956 | 256x512 >> 512x1024
-8 classes (categories only)   | 0.929  | 0.931 | 256x512 >> 512x1024
-20 classes                    | 0.852  | 0.858 | 128x256  
+2 classes (road segmentation) | 0.956 ([weights](https://drive.google.com/open?id=1L7mYrM0oBFDvO1OxU7NOZYrNWWNUhRkR))  | 0.956 ([weights](https://drive.google.com/open?id=10XamX7t5T59evY_1OiJEJQBSAKDn8tw8)) | 256x512 >> 512x1024
+8 classes (categories only)   | 0.929 ([weights](https://drive.google.com/open?id=1DX5Akcu5vRGnkAcH2tljtMSPkbnWH6ZV))  | 0.931 ([weights](https://drive.google.com/open?id=13TxEjLemfjMvqBEyfmQJ3pbOgK32fQxX)) | 256x512 >> 512x1024
+20 classes                    | 0.852 ([weights](https://drive.google.com/open?id=13NZA-zajFbMGqOsMK-1ldIipbQMHz4vo))  | 0.858 ([weights](https://drive.google.com/open?id=1_xqp5h8eUtOnv_EIQbFi3BMNG0pLLiXX)) | 128x256  
 
 8 classes:  
 
