@@ -179,7 +179,7 @@ UNET   | 0.944  | 0.608      | 0.785        | **0.020** | 0.017      | **0.131**
 So what is interesting, that I expected to see better performance on multiclass problems by FPN architecture, but the thing is on average both UNET and FPN gives pretty close dice metric.  
 Yes, there are a couple of classes that the FPN segmentation model detects better (marked in the table), but the absolute dice metric values of such classes, are not so high.  
 
-***Summury***:  
+***Summary***:  
 *In general, if you're dealing with some generic segmentation problem with pretty large, nicely separable objects - it seems that the **FPN could be a good choice for both binary and multiclass segmentation** in terms of segmentation quality and computational effectiveness, **but** at the same time I've noticed that **FPN gives more small gapes in masks** opposite to the UNET. Check out videos below:*  
 
 Prediction on cityscapes demo videos (Stuttgart):  
