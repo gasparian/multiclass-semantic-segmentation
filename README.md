@@ -156,9 +156,9 @@ Dice metric comparison table:
 
 Classes #                     | Unet   | FPN   | Size
 :----------------------------:|:------:|:-----:|:----:
-2 classes (road segmentation) | 0.956 ([weights](https://drive.google.com/open?id=1L7mYrM0oBFDvO1OxU7NOZYrNWWNUhRkR))  | 0.956 ([weights](https://drive.google.com/open?id=10XamX7t5T59evY_1OiJEJQBSAKDn8tw8)) | 256x512 >> 512x1024
-8 classes (categories only)   | 0.929 ([weights](https://drive.google.com/open?id=1DX5Akcu5vRGnkAcH2tljtMSPkbnWH6ZV))  | 0.931 ([weights](https://drive.google.com/open?id=13TxEjLemfjMvqBEyfmQJ3pbOgK32fQxX)) | 256x512 >> 512x1024
-20 classes                    | 0.852 ([weights](https://drive.google.com/open?id=13NZA-zajFbMGqOsMK-1ldIipbQMHz4vo))  | 0.858 ([weights](https://drive.google.com/open?id=1_xqp5h8eUtOnv_EIQbFi3BMNG0pLLiXX)) | 128x256  
+2 (road segmentation) | 0.956 ([weights](https://drive.google.com/open?id=1L7mYrM0oBFDvO1OxU7NOZYrNWWNUhRkR))  | 0.956 ([weights](https://drive.google.com/open?id=10XamX7t5T59evY_1OiJEJQBSAKDn8tw8)) | 256x512 >> 512x1024
+8 (categories only)   | 0.929 ([weights](https://drive.google.com/open?id=1DX5Akcu5vRGnkAcH2tljtMSPkbnWH6ZV))  | 0.931 ([weights](https://drive.google.com/open?id=13TxEjLemfjMvqBEyfmQJ3pbOgK32fQxX)) | 256x512 >> 512x1024
+20                    | 0.852 ([weights](https://drive.google.com/open?id=13NZA-zajFbMGqOsMK-1ldIipbQMHz4vo))  | 0.858 ([weights](https://drive.google.com/open?id=1_xqp5h8eUtOnv_EIQbFi3BMNG0pLLiXX)) | 128x256  
 
 8 classes:  
 
@@ -191,7 +191,7 @@ Classes # | UNET | FPN
 20        | [00](https://youtu.be/EpN4Jx60pXI), [01](https://youtu.be/X1Oa2x5BAkg), [02](https://youtu.be/rkm6OpPCZY0) | [00](https://youtu.be/DzyLExn0M54), [01](https://youtu.be/OJyR_4U7PV8), [02](https://youtu.be/Wez8wFR3QOY)  
 
 
-I used `ffmpeg` for doing that on Linux:  
+I used `ffmpeg` for making videos from images sequence on Linux:  
 ```
 ffmpeg -f image2 -framerate 20 \
        -pattern_type glob -i 'stuttgart_00_*.png' \
