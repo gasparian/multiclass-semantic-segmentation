@@ -178,16 +178,18 @@ UNET   | 0.944  | 0.608      | 0.785        | **0.020** | 0.017      | **0.131**
 
 So what is interesting, that I expected to see better performance on multiclass problems by FPN architecture, but the thing is on average both UNET and FPN gives pretty close dice metric.  
 Yes, there are a couple of classes that the FPN segmentation model detects better (marked in the table), but the absolute dice metric values of such classes, are not so high.  
-But in general, if you're dealing with some generic segmentation problem with pretty large, nicely separable objects - it seems that the **FPN could be a good choice for both binary and multiclass segmentation** in terms of segmentation quality and computational effectiveness.  
 
-#### Prediction on cityscapes demo videos (Stuttgart):  
+***Summury***:  
+*In general, if you're dealing with some generic segmentation problem with pretty large, nicely separable objects - it seems that the **FPN could be a good choice for both binary and multiclass segmentation** in terms of segmentation quality and computational effectiveness, **but** at the same time I've noticed that **FPN gives more small gapes in masks** opposite to the UNET. Check out videos below:*  
 
-UNET, 2 classes: [00](https://youtu.be/dHnidGY_Lwc), [01](https://youtu.be/RURCE3K7OeA), [02](https://youtu.be/OrAe5DiYWQk).  
-FPN, 2 classes: [00](https://youtu.be/RUu6upRSi20), [01](https://youtu.be/innUjjzpQ8s), [02](https://youtu.be/cGZTEw16rQg).  
-UNET, 8 classes: [00](https://youtu.be/hmIV17M7Gf8), [01](https://youtu.be/lW43CHLNL5k), [02](https://youtu.be/a2HjDz_IMMg).  
-FPN, 8 classes: [00](https://youtu.be/7qGSZ9XypkE), [01](https://youtu.be/6PhdoajzwNQ), [02](https://youtu.be/O0_Jzrfmgqk).  
-UNET, 20 classes: [00](https://youtu.be/EpN4Jx60pXI), [01](https://youtu.be/X1Oa2x5BAkg), [02](https://youtu.be/rkm6OpPCZY0).  
-FPN, 20 classes: [00](https://youtu.be/DzyLExn0M54), [01](https://youtu.be/OJyR_4U7PV8), [02](https://youtu.be/Wez8wFR3QOY).  
+Prediction on cityscapes demo videos (Stuttgart):  
+
+Classes # | UNET | FPN 
+:--------:|:-----:|:-----
+2         | [00](https://youtu.be/dHnidGY_Lwc), [01](https://youtu.be/RURCE3K7OeA), [02](https://youtu.be/OrAe5DiYWQk) | [00](https://youtu.be/RUu6upRSi20), [01](https://youtu.be/innUjjzpQ8s), [02](https://youtu.be/cGZTEw16rQg)  
+8         | [00](https://youtu.be/hmIV17M7Gf8), [01](https://youtu.be/lW43CHLNL5k), [02](https://youtu.be/a2HjDz_IMMg) | [00](https://youtu.be/7qGSZ9XypkE), [01](https://youtu.be/6PhdoajzwNQ), [02](https://youtu.be/O0_Jzrfmgqk)  
+20        | [00](https://youtu.be/EpN4Jx60pXI), [01](https://youtu.be/X1Oa2x5BAkg), [02](https://youtu.be/rkm6OpPCZY0) | [00](https://youtu.be/DzyLExn0M54), [01](https://youtu.be/OJyR_4U7PV8), [02](https://youtu.be/Wez8wFR3QOY)  
+
 
 I used `ffmpeg` for doing that on Linux:  
 ```
