@@ -2,7 +2,7 @@
 
 <p align="center"> <img src="https://github.com/gasparian/semantic_segmentation_experiments/blob/master/imgs/UNET_2x_stuttgart_01.gif" height=320 /> </p>  
 
-### Problem statement  
+### Intro  
 
 Semantic segmentation is no more than pixel-level classification and is well-known in the deep-learning community. There are several "state of the art" approaches for building such models. So basically we need a fully-convolutional network with some pretrained backbone for feature extraction to "map" input image with given masks (let's say, each output channel represents the individual class).  
 Here is an example of cityscapes annotation:  
