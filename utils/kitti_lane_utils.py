@@ -4,15 +4,10 @@ import os
 import numpy as np
 import pandas as pd
 
-from torch.utils.data import Dataset
-from albumentations import HorizontalFlip, RandomCrop, Resize, \
-                           RandomBrightness, RandomContrast, RandomGamma, \
-                           RandomFog, RandomRain, RandomShadow, RandomSnow, RandomSunFlare, \
-                           Normalize, Resize, Compose, OneOf
 from albumentations.pytorch import ToTensor
 
 from .utils import open_img, DropClusters, invert_mask
-from .cityscapes_utils import CityscapesDataset
+from dataset import CustomDataset
 
 class KittiTrainDataset:
 
@@ -90,10 +85,9 @@ class KittiLaneLabelEncoder:
         colored_labels[ys, xs, :] = self.label_color
         return colored_labels
 
-class KittiLaneDataset(CityscapesDataset):
+class KittiLaneDataset(CustomDataset):
 
-    def __init__(self, hard_augs=False, resize=None, orig_size=(375, 1242), select_classes=[], train_on_cats=None):
-
+    def __init__(self, hard_augs=False, resize=None, orig_size=(375, 1242)):
         super().__init__(hard_augs=hard_augs, resize=resize, orig_size=orig_size)
         self.resize_to_orig = Resize(self.orig_h, self.orig_w, interpolation=4, p=1.0)
         self.label_encoder = KittiLaneLabelEncoder()

@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from utils import CityscapesTrainDataset, LabelEncoder, CityscapesDataset, \
+from utils import CityscapesTrainDataset, CityscapesLabelEncoder, CityscapesDataset, \
                   KittiLaneLabelEncoder, KittiTrainDataset, KittiLaneDataset, \
                   Trainer, Meter, UnetResNet, FPN, load_train_config
 
