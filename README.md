@@ -74,7 +74,7 @@ Forward/backward pass size (MB): 4574.11
 Params size (MB): 97.61
 ```  
 
-As we can see, FPN segmentation model is a lot "lighter" (so faster to train and predict).  
+As we can see, FPN segmentation model is a lot "lighter" (so we can make larger batch size ;) ).  
 
 #### Logs  
 To monitor the training process, we can set up tensorboard (on CPU):  
